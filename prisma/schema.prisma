@@ -1,0 +1,228 @@
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model School {
+  schoolId                 Int                      @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  name                     String                   @db.VarChar(255)
+  courseCount              Int                      @db.UnsignedInt @default(0) @map("course_count")
+  created                  DateTime                 @default(now()) @db.Timestamp(0)
+  modified                 DateTime?                @db.Timestamp(0) @updatedAt
+  studentCenterAccountType StudentCenterAccountType @default(general)
+  courses                  Course[]
+
+  @@map("schools")
+}
+
+enum StudentCenterAccountType {
+  general
+  style
+  travel
+  paymentTypewriting
+}
+
+model Course {
+  courseId        Int          @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  schoolId        Int          @db.UnsignedInt()
+  code            String       @db.Char(2)
+  name            String       @db.VarChar(255)
+  prefix          String       @db.Char(2)
+  maxAssignments  Int?         @db.Int @map("max_assignments")
+  order           Int          @db.UnsignedInt @default(50)
+  enrollmentCount Int          @db.UnsignedInt @default(0) @map("enrollment_count")
+  cost            Decimal      @db.Decimal(10, 2) @default(0)
+  installment     Decimal      @db.Decimal(10, 2) @default(0)
+  created         DateTime     @default(now()) @db.Timestamp(0)
+  modified        DateTime?    @db.Timestamp(0) @updatedAt
+  school          School       @relation(fields: [schoolId], references: [schoolId], map: "courses_ibfk_1")
+  enrollments     Enrollment[]
+
+  @@map("courses")
+  @@index([schoolId], map: "school_id")
+}
+
+model Currency {
+  currencyId   Int          @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  code         String       @db.Char(3)
+  name         String?      @db.VarChar(255)
+  symbol       String       @db.VarChar(5)
+  exchangeRate Decimal      @db.Decimal(10, 5)
+  created      DateTime     @default(now()) @db.Timestamp(0)
+  modified     DateTime?    @db.Timestamp(0) @updatedAt
+  enrollments  Enrollment[]
+
+  @@map("currencies")
+}
+
+model Country {
+  countryId       Int        @id @db.UnsignedInt @map("id")
+  code            String     @db.Char(2)
+  name            String     @db.VarChar(255)
+  iso             Int?       @db.SmallInt @map("iso 3166-1")
+  eu              Boolean    @default(false)
+  noShipping      Boolean    @default(false) @map("no_shipping")
+  needsPostalCode Boolean    @default(false) @map("needs_postal_code")
+  studentCount    Int        @db.UnsignedInt @default(0)
+  provinces       Province[]
+  students        Student[]
+
+  @@map("countries")
+  @@unique([iso], map: "iso 3166-1")
+}
+
+model Province {
+  provinceId   Int       @id @db.UnsignedInt @map("id")
+  countryId    Int       @db.UnsignedInt @map("country_id")
+  code         String    @db.Char(3)
+  name         String    @db.VarChar(50)
+  studentCount Int       @db.UnsignedInt @default(0)
+  country      Country   @relation(fields: [countryId], references: [countryId], map: "provinces_ibfk_1")
+  students     Student[]
+
+  @@map("provinces")
+  @@unique([countryId, code], map: "code")
+  @@index([countryId], map: "country_id")
+}
+
+model Student {
+  studentId            Int          @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  currencyId           Int          @db.UnsignedInt @map("currency_id")
+  userId               Int?         @db.UnsignedInt @map("user_id")
+  sex                  StudentSex   @default(F)
+  firstName            String       @db.VarChar(40) @map("fist_name")
+  lastName             String       @db.VarChar(40) @map("last_name")
+  address1             String       @db.VarChar(40)
+  address2             String       @db.VarChar(40)
+  city                 String       @db.VarChar(31)
+  provinceId           Int?         @db.UnsignedInt
+  postalCode           String?      @db.VarChar(10)
+  countryId            Int          @db.UnsignedInt
+  telephoneCountryCode Int          @db.UnsignedSmallInt @map("telephone_country_code")
+  telephoneNumber      String       @db.VarChar(100) @map("telephone_number")
+  emailAddress         String       @db.VarChar(100) @map("email_address")
+  province             Province?    @relation(fields: [provinceId], references: [provinceId], map: "students_ibfk_1")
+  country              Country      @relation(fields: [countryId], references: [countryId], map: "students_ibfk_2")
+  enrollments          Enrollment[]
+
+  @@map("students")
+  @@index([currencyId], map: "currency_id")
+  @@index([userId], map: "user_id")
+  @@index([provinceId], map: "province_id")
+  @@index([countryId], map: "country_id")
+  @@index([userId], map: "language_id")
+}
+
+enum StudentSex {
+  M
+  F
+}
+
+model Enrollment {
+  enrollmentId         Int                        @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  studentId            Int                        @db.UnsignedInt @map("student_id")
+  courseId             Int                        @db.UnsignedInt @map("course_id")
+  currencyId           Int                        @db.UnsignedInt @map("currency_id")
+  userId               Int?                       @db.UnsignedInt @map("user_id")
+  enrollmentDate       DateTime?                  @db.Date @map("enrollment_date")
+  expiryDate           DateTime?                  @db.Date @map("expiry_date")
+  paymentPlan          EnrollmentPaymentPlan      @map("payment_plan")
+  status               EnrollmentStatus?
+  statusDate           DateTime?                  @db.Date @map("status_date")
+  gradEmailDate        DateTime?                  @db.Date @map("grad_email_date")
+  gradEmailSkip        Boolean                    @default(false) @map("grad_email_skip")
+  cost                 Decimal                    @db.Decimal(10, 2)
+  discount             Decimal                    @db.Decimal(10, 2)
+  installment          Decimal                    @db.Decimal(10, 2)
+  noShipping           Boolean                    @default(false) @map("no_shipping")
+  hideFromShippingList Boolean                    @default(false) @map("hide_from_shipping_list")
+  paymentOverride      Boolean                    @default(false) @map("payment_override")
+  paymentFrequency     EnrollmentPaymentFrequency @default(monthly) @map("payment_frequency")
+  paymentDay           Int?                       @db.UnsignedTinyInt @map("payment_day")
+  paymentStart         DateTime                   @db.Date @map("payment_start")
+  accountId            Int?                       @db.UnsignedInt @map("account_id")
+  shippingNote         String?                    @db.Text @map("shipping_note")
+  preparedDate         DateTime?                  @db.Date @map("prepared_date")
+  shippedDate          DateTime?                  @db.Date @map("shipped_date")
+  diploma              Boolean                    @default(false) @map("diploma")
+  diplomaDate          DateTime?                  @db.Date @map("diploma_date")
+  fastTrack            Boolean                    @default(false) @map("fast_track")
+  noStudentCenter      Boolean                    @default(false) @map("no_student_center")
+  created              DateTime                   @default(now()) @db.Timestamp(0)
+  modified             DateTime?                  @db.Timestamp(0) @updatedAt
+  student              Student                    @relation(fields: [studentId], references: [studentId], map: "enrollments_ibfk_1")
+  course               Course                     @relation(fields: [courseId], references: [courseId], map: "enrollments_ibfk_2")
+  currency             Currency                   @relation(fields: [currencyId], references: [currencyId], map: "enrollments_ibfk_3")
+  paymentMethods       PaymentMethod[]
+
+  @@map("enrollments")
+  @@unique([studentId, courseId], map: "student_id_2")
+  @@index([studentId], map: "student_id")
+  @@index([courseId], map: "course_id")
+  @@index([currencyId], map: "currency_id")
+  @@index([enrollmentDate], map: "enrollment_date")
+  @@index([userId], map: "user_id")
+}
+
+enum EnrollmentPaymentPlan {
+  full
+  accelerated
+  extended
+}
+
+enum EnrollmentStatus {
+  W
+  H
+  T
+  G
+  R
+}
+
+enum EnrollmentPaymentFrequency {
+  monthly
+  biWeekly @map("bi-weekly")
+  weekly
+}
+
+model PaymentType {
+  paymentTypeId  Int             @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  name           String          @db.VarChar(40)
+  paymentMethods PaymentMethod[]
+
+  @@map("payment_types")
+}
+
+model PaymentMethod {
+  paymentMethodId     Int             @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  enrollmentId        Int?            @db.UnsignedInt @map("enrollment_id")
+  paymentTypeId       Int             @db.UnsignedInt @map("payment_type_id")
+  primary             Boolean
+  paysafeProfileId    String?         @db.Char(36) @map("paysafe_profile_id")
+  paysafeCardId       String?         @db.Char(36) @map("paysafe_card_id")
+  paysafePaymentToken String?         @db.Char(36) @map("paysafe_payment_token")
+  paysafeCompany      PaysafeCompany? @map("paysafe_company")
+  pan                 String?         @db.VarChar(20)
+  expiryMonth         Int?            @db.UnsignedTinyInt @map("expiry_month")
+  expiryYear          Int?            @db.UnsignedTinyInt @map("expiry_year")
+  deleted             Boolean         @default(false)
+  notified            Boolean         @default(true)
+  disabled            Boolean         @default(false)
+  transactionCount    Int             @db.UnsignedInt @default(0)
+  created             DateTime        @default(now()) @db.Timestamp(0)
+  modified            DateTime?       @db.Timestamp(0) @updatedAt
+  enrollment          Enrollment?     @relation(fields: [enrollmentId], references: [enrollmentId], map: "payment_methods_ibfk_1")
+  paymentType         PaymentType     @relation(fields: [paymentTypeId], references: [paymentTypeId], map: "payment_methods_ibfk_2")
+  @@map("payment_methods")
+}
+
+enum PaysafeCompany {
+  CA
+  US
+  GB
+}

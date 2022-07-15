@@ -7,6 +7,7 @@ export type Config = {
   auth: {
     cookieDomain: string;
     cookiePath: string;
+    xsrfCookieName: string;
     /** how long before access tokens should expire, in seconds */
     accessTokenLifetime: number;
     /** how long before refresh tokens should expire, in seconds */

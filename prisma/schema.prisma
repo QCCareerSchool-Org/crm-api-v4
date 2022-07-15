@@ -94,7 +94,7 @@ model Country {
   eu              Boolean    @default(false)
   noShipping      Boolean    @default(false) @map("no_shipping")
   needsPostalCode Boolean    @default(false) @map("needs_postal_code")
-  studentCount    Int        @db.UnsignedInt @default(0)
+  studentCount    Int        @db.UnsignedInt @default(0) @map("student_count")
   provinces       Province[]
   students        Student[]
 
@@ -107,7 +107,7 @@ model Province {
   countryId    Int       @db.UnsignedInt @map("country_id")
   code         String    @db.Char(3)
   name         String    @db.VarChar(50)
-  studentCount Int       @db.UnsignedInt @default(0)
+  studentCount Int       @db.UnsignedInt @default(0) @map("student_count")
   country      Country   @relation(fields: [countryId], references: [countryId], map: "provinces_ibfk_1")
   students     Student[]
 
@@ -271,11 +271,11 @@ model RefreshToken {
   token           Bytes          @db.Binary(64)
   expiry          DateTime       @db.Timestamp(0)
   ipAddress       Bytes?         @db.VarBinary(16) @map("ip_address")
-  browser         String?        @db.VarChar(191) 
+  browser         String?        @db.VarChar(191)
   browserVersion  String?        @db.VarChar(191) @map("browser_version")
   mobile          Boolean?
-  os              String?        @db.VarChar(191) 
-  city            String?        @db.VarChar(191) 
+  os              String?        @db.VarChar(191)
+  city            String?        @db.VarChar(191)
   country         String?        @db.Char(2)
   latitude        Decimal?       @db.Decimal(7, 4)
   longitude       Decimal?       @db.Decimal(7, 4)

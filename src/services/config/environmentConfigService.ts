@@ -110,6 +110,7 @@ export class EnvironmentConfigService implements IConfigService {
       auth: {
         cookieDomain: process.env.COOKIE_DOMAIN ?? 'localhost',
         cookiePath: process.env.COOKIE_PATH ?? '/v4',
+        xsrfCookieName: process.env.XSRF_COOKIE_NAME ?? 'XSRF-TOKEN',
         accessTokenLifetime: process.env.ACCESS_TOKEN_LIFETIME ? parseInt(process.env.ACCESS_TOKEN_LIFETIME, 10) : 30 * 60, // 30-minute default
         refreshTokenLifetime: process.env.REFRESH_TOKEN_LIFETIME ? parseInt(process.env.REFRESH_TOKEN_LIFETIME, 10) : 30 * 60 * 60 * 24, // 30-day default
       },

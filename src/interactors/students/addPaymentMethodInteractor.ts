@@ -27,7 +27,7 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
     private readonly logger: ILoggerService
   ) { /* empty */ }
 
-  public async execute({ studentId, enrollmentId, paymentToken }: AddPaymentMethodRequestDTO): Promise<ResultType<PaymentMethodDTO>> {
+  public async execute({ studentId, enrollmentId, paymentToken }: AddPaymentMethodRequestDTO): Promise<ResultType<AddPaymentMethodResponseDTO>> {
     try {
       const paymentType = await this.prisma.paymentType.findFirst({
         where: { name: 'Paysafe' },
@@ -67,8 +67,6 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
         enrollment.student.country.code,
         paymentToken,
       );
-
-      console.log(paysafeResult);
 
       const paymentMethod = await this.prisma.$transaction(async transaction => {
         await transaction.paymentMethod.updateMany({
@@ -110,6 +108,7 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
         created: paymentMethod.created,
         modified: paymentMethod.modified,
       });
+
     } catch (err) {
       this.logger.error('error adding payment method', err instanceof Error ? err.message : err);
       return Result.fail(err instanceof Error ? err : Error('unknown error'));

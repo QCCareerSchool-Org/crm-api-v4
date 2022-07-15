@@ -9,6 +9,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  userId         Int            @id @db.UnsignedInt @default(autoincrement())
+  username       String         @db.VarChar(50)
+  password       String         @db.VarChar(40)
+  sex            UserSex        @default(F)
+  firstName      String         @db.VarChar(40) @map("first_name")
+  lastName       String         @db.VarChar(40) @map("last_name")
+  emailAddress   String?        @db.VarChar(225) @map("email_address")
+  adminPriv      Boolean        @default(false) @map("admin_priv")
+  accountingPriv Boolean        @default(false) @map("accounting_priv")
+  created        DateTime       @default(now()) @db.Timestamp(0)
+  modified       DateTime?      @db.Timestamp(0) @updatedAt
+  students       Student[]
+  enrollments    Enrollment[]
+  refreshTokens  RefreshToken[]
+
+  @@map("users")
+  @@unique([username])
+}
+
+enum UserSex {
+  M
+  F
+}
+
 model School {
   schoolId                 Int                      @id @db.UnsignedInt @default(autoincrement()) @map("id")
   name                     String                   @db.VarChar(255)
@@ -92,31 +117,42 @@ model Province {
 }
 
 model Student {
-  studentId            Int          @id @db.UnsignedInt @default(autoincrement()) @map("id")
-  currencyId           Int          @db.UnsignedInt @map("currency_id")
-  userId               Int?         @db.UnsignedInt @map("user_id")
-  sex                  StudentSex   @default(F)
-  firstName            String       @db.VarChar(40) @map("fist_name")
-  lastName             String       @db.VarChar(40) @map("last_name")
-  address1             String       @db.VarChar(40)
-  address2             String       @db.VarChar(40)
-  city                 String       @db.VarChar(31)
-  provinceId           Int?         @db.UnsignedInt
-  postalCode           String?      @db.VarChar(10)
-  countryId            Int          @db.UnsignedInt
-  telephoneCountryCode Int          @db.UnsignedSmallInt @map("telephone_country_code")
-  telephoneNumber      String       @db.VarChar(100) @map("telephone_number")
-  emailAddress         String       @db.VarChar(100) @map("email_address")
-  province             Province?    @relation(fields: [provinceId], references: [provinceId], map: "students_ibfk_1")
-  country              Country      @relation(fields: [countryId], references: [countryId], map: "students_ibfk_2")
+  studentId            Int            @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  currencyId           Int            @db.UnsignedInt @map("currency_id")
+  userId               Int?           @db.UnsignedInt @map("user_id")
+  languageId           Int            @db.UnsignedInt @map("language_id")
+  sex                  StudentSex     @default(F)
+  firstName            String         @db.VarChar(40) @map("first_name")
+  lastName             String         @db.VarChar(40) @map("last_name")
+  address1             String         @db.VarChar(40)
+  address2             String         @db.VarChar(40)
+  city                 String         @db.VarChar(31)
+  provinceId           Int?           @db.UnsignedInt @map("province_id")
+  postalCode           String?        @db.VarChar(10) @map("postal_code")
+  countryId            Int            @db.UnsignedInt @map("country_id")
+  telephoneCountryCode Int            @db.UnsignedSmallInt @map("telephone_country_code")
+  telephoneNumber      String         @db.VarChar(100) @map("telephone_number")
+  emailAddress         String         @db.VarChar(100) @map("email_address")
+  paymentStart         DateTime?      @db.Date @map("payment_start")
+  paymentDay           Int?           @db.UnsignedTinyInt @map("payment_day")
+  password             String?        @db.VarChar(255)
+  e164                 String         @db.VarChar(104) @map("E164")
+  sms                  Boolean        @default(false)
+  enrollmentCount      Int            @db.UnsignedInt @default(0) @map("enrollment_count")
+  created              DateTime       @default(now()) @db.Timestamp(0)
+  modified             DateTime?      @db.Timestamp(0) @updatedAt
+  province             Province?      @relation(fields: [provinceId], references: [provinceId], map: "students_ibfk_1")
+  country              Country        @relation(fields: [countryId], references: [countryId], map: "students_ibfk_2")
+  user                 User?          @relation(fields: [userId], references: [userId], map: "students_ibfk_3")
   enrollments          Enrollment[]
+  refreshTokens        RefreshToken[]
 
   @@map("students")
   @@index([currencyId], map: "currency_id")
   @@index([userId], map: "user_id")
   @@index([provinceId], map: "province_id")
   @@index([countryId], map: "country_id")
-  @@index([userId], map: "language_id")
+  @@index([languageId], map: "language_id")
 }
 
 enum StudentSex {
@@ -159,6 +195,7 @@ model Enrollment {
   student              Student                    @relation(fields: [studentId], references: [studentId], map: "enrollments_ibfk_1")
   course               Course                     @relation(fields: [courseId], references: [courseId], map: "enrollments_ibfk_2")
   currency             Currency                   @relation(fields: [currencyId], references: [currencyId], map: "enrollments_ibfk_3")
+  user                 User?                      @relation(fields: [userId], references: [userId], map: "enrollments_ibfk_4")
   paymentMethods       PaymentMethod[]
 
   @@map("enrollments")
@@ -225,4 +262,30 @@ enum PaysafeCompany {
   CA
   US
   GB
+}
+
+model RefreshToken {
+  refreshTokenId  Bytes          @id @db.Binary(16) @map("refresh_token_id")
+  studentId       Int?           @db.UnsignedInt @map("student_id")
+  userId          Int?           @db.UnsignedInt @map("user_id")
+  token           Bytes          @db.Binary(64)
+  expiry          DateTime       @db.Timestamp(0)
+  ipAddress       Bytes?         @db.VarBinary(16) @map("ip_address")
+  browser         String?        @db.VarChar(191) 
+  browserVersion  String?        @db.VarChar(191) @map("browser_version")
+  mobile          Boolean?
+  os              String?        @db.VarChar(191) 
+  city            String?        @db.VarChar(191) 
+  country         String?        @db.Char(2)
+  latitude        Decimal?       @db.Decimal(7, 4)
+  longitude       Decimal?       @db.Decimal(7, 4)
+  created         DateTime       @default(now()) @db.Timestamp(0)
+  modified        DateTime?      @db.Timestamp(0) @updatedAt
+  student         Student?       @relation(fields: [studentId], references: [studentId], onDelete: Cascade, map: "refresh_tokens_ibfk_1")
+  user            User?          @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "refresh_tokens_ibfk_2")
+
+  @@map("refresh_tokens")
+  @@unique([token], map: "token")
+  @@index([studentId], map: "account_id")
+  @@index([userId], map: "user_id")
 }

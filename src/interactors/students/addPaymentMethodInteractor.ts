@@ -1,11 +1,11 @@
 import type { PrismaClient } from '@prisma/client';
 
-import type { PaymentMethodDTO } from '../domain/paymentMethodDTO.js';
-import type { ILoggerService } from '../services/logger/index.js';
-import type { IPaysafeServiceFactory } from '../services/paysafe/index.js';
-import type { ResultType } from './result.js';
-import { Result } from './result.js';
-import type { IInteractor } from './index.js';
+import type { PaymentMethodDTO } from '../../domain/paymentMethodDTO.js';
+import type { ILoggerService } from '../../services/logger/index.js';
+import type { IPaysafeServiceFactory } from '../../services/paysafe/index.js';
+import type { IInteractor } from '../index.js';
+import type { ResultType } from '../result.js';
+import { Result } from '../result.js';
 
 export type AddPaymentMethodRequestDTO = {
   studentId: number;
@@ -67,6 +67,8 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
         enrollment.student.country.code,
         paymentToken,
       );
+
+      console.log(paysafeResult);
 
       const paymentMethod = await this.prisma.$transaction(async transaction => {
         await transaction.paymentMethod.updateMany({

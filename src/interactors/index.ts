@@ -1,8 +1,4 @@
 import type { Stream } from 'stream';
-import { prisma } from '../frameworks/prisma/index.js';
-import { jwtService, paysafeServiceFactory, winstonLoggerService } from '../services/index.js';
-import { AddPaymentMethodInteractor } from './addPaymentMethodInteractor.js';
-import { CheckAuthenticationInteractor } from './checkAuthenticationInteractor.js';
 
 import type { ResultType } from './result.js';
 
@@ -45,5 +41,17 @@ export type InteractorFileStreamDownload = {
   download?: boolean;
 };
 
-export const addPaymentMethodInteractor = new AddPaymentMethodInteractor(prisma, paysafeServiceFactory, winstonLoggerService);
-export const checkAuthenticationInteractor = new CheckAuthenticationInteractor(jwtService, winstonLoggerService);
+export type InteractorCookieOptions = {
+  maxAge?: number;
+  path?: string;
+  domain?: string;
+  secure?: boolean;
+  httpOnly?: boolean;
+  sameSite?: 'strict' | 'lax' | 'none';
+};
+
+export type InteractorCookie = {
+  name: string;
+  value: string;
+  options: InteractorCookieOptions;
+};

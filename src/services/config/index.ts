@@ -3,7 +3,7 @@ export type Environment = 'development' | 'production';
 export type Config = {
   environment: Environment;
   port: number;
-  host: string;
+  // host: string;
   auth: {
     cookieDomain: string;
     /** how long before access tokens should expire, in seconds */

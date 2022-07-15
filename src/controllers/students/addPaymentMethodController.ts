@@ -1,9 +1,9 @@
 import * as yup from 'yup';
-import { addPaymentMethodInteractor } from '../interactors';
 
-import type { AddPaymentMethodResponseDTO } from '../interactors/addPaymentMethodInteractor';
-import { AddPaymentMethodEnrollmentNotFound, AddPaymentMethodPaymentTypeNotFound } from '../interactors/addPaymentMethodInteractor';
-import { BaseController } from './baseController';
+import type { AddPaymentMethodResponseDTO } from '../../interactors/students/addPaymentMethodInteractor.js';
+import { AddPaymentMethodEnrollmentNotFound, AddPaymentMethodPaymentTypeNotFound } from '../../interactors/students/addPaymentMethodInteractor.js';
+import { addPaymentMethodInteractor } from '../../interactors/students/index.js';
+import { BaseController } from '../baseController.js';
 
 type Request = {
   params: {

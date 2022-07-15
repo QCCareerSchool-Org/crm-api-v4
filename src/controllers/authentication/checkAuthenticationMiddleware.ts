@@ -1,8 +1,8 @@
 import * as yup from 'yup';
 
-import { CheckAuthenticationInvalidPayload, CheckAuthenticationInvalidXSRF, CheckAuthenticationMissingXSRF, CheckAuthenticationVerifyError } from '../interactors/checkAuthenticationInteractor.js';
-import { checkAuthenticationInteractor } from '../interactors/index.js';
-import { BaseMiddleware } from './baseMiddleware.js';
+import { CheckAuthenticationInvalidPayload, CheckAuthenticationInvalidXSRF, CheckAuthenticationMissingXSRF, CheckAuthenticationVerifyError } from '../../interactors/authentication/checkAuthenticationInteractor.js';
+import { checkAuthenticationInteractor } from '../../interactors/authentication/index.js';
+import { BaseMiddleware } from '../baseMiddleware.js';
 
 type Request = {
   cookies: {

@@ -19,10 +19,10 @@ export class EnvironmentConfigService implements IConfigService {
       ? parseInt(process.env.PORT, 10)
       : EnvironmentConfigService.#defaultPort;
 
-    const host = process.env.HOST;
-    if (typeof host === 'undefined') {
-      throw Error('Environment variable HOST is undefined');
-    }
+    // const host = process.env.HOST;
+    // if (typeof host === 'undefined') {
+    //   throw Error('Environment variable HOST is undefined');
+    // }
 
     const smtpHost = process.env.SMTP_HOST;
     if (typeof smtpHost === 'undefined') {
@@ -106,9 +106,9 @@ export class EnvironmentConfigService implements IConfigService {
     this.#config = {
       environment,
       port,
-      host,
+      // host,
       auth: {
-        cookieDomain: process.env.COOKIE_DOMAIN ?? 'sc.qccareerschool.com',
+        cookieDomain: process.env.COOKIE_DOMAIN ?? 'localhost',
         accessTokenLifetime: process.env.ACCESS_TOKEN_LIFETIME ? parseInt(process.env.ACCESS_TOKEN_LIFETIME, 10) : 30 * 60, // 30-minute default
         refreshTokenLifetime: process.env.REFRESH_TOKEN_LIFETIME ? parseInt(process.env.REFRESH_TOKEN_LIFETIME, 10) : 30 * 60 * 60 * 24, // 30-day default
       },

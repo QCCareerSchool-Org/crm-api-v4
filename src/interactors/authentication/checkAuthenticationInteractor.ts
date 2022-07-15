@@ -1,11 +1,11 @@
 import * as yup from 'yup';
 
-import type { AccessTokenPayload } from '../domain/accessTokenPayload.js';
-import type { IJWTService } from '../services/jwt/index.js';
-import type { ILoggerService } from '../services/logger/index.js';
-import type { ResultType } from './result.js';
-import { Result } from './result.js';
-import type { IInteractor } from './index.js';
+import type { AccessTokenPayload } from '../../domain/accessTokenPayload.js';
+import type { IJWTService } from '../../services/jwt/index.js';
+import type { ILoggerService } from '../../services/logger/index.js';
+import type { IInteractor } from '../index.js';
+import type { ResultType } from '../result.js';
+import { Result } from '../result.js';
 
 type CheckAuthenticationRequestDTO = {
   accessToken: string;
@@ -32,19 +32,21 @@ export class CheckAuthenticationInteractor implements IInteractor<CheckAuthentic
       let decoded: unknown;
       try {
         decoded = await this.jwtService.verify(accessToken);
-      } catch (err: unknown) {
+      } catch (err) {
         return Result.fail(new CheckAuthenticationVerifyError());
       }
 
       const schema: yup.SchemaOf<AccessTokenPayload> = yup.object({
-        id: yup.number().defined(),
+        sub: yup.number().defined(),
+        iss: yup.string().defined().equals([ 'https://crm.qccareerschool.com' ]),
+        userType: yup.string().defined().equals([ 'student' ]),
         exp: yup.number().defined(),
         xsrf: yup.string().defined(),
       });
       let accessTokenPayload: AccessTokenPayload;
       try {
         accessTokenPayload = await schema.validate(decoded);
-      } catch (err: unknown) {
+      } catch (err) {
         if (err instanceof Error) {
           this.logger.error(err.message);
         }

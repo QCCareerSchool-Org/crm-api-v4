@@ -120,13 +120,13 @@ export class LoginInteractor implements IInteractor<LoginRequestDTO, LoginRespon
 
       const accessCookieOptions: InteractorCookieOptions = {
         ...baseCookieOptions,
-        path: '/v4',
+        path: this.configService.config.auth.cookiePath,
         maxAge: this.configService.config.auth.accessTokenLifetime * 1000,
       };
 
       const refreshCookieOptions: InteractorCookieOptions = {
         ...baseCookieOptions,
-        path: '/v4/auth/refresh',
+        path: this.configService.config.auth.cookiePath + '/auth/refresh',
       };
 
       if (request.stayLoggedIn) {

@@ -6,6 +6,7 @@ export type Config = {
   // host: string;
   auth: {
     cookieDomain: string;
+    cookiePath: string;
     /** how long before access tokens should expire, in seconds */
     accessTokenLifetime: number;
     /** how long before refresh tokens should expire, in seconds */

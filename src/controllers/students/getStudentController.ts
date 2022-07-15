@@ -43,7 +43,7 @@ export class GetStudentController extends BaseController<Request, Response> {
     const result = await getStudentInteractor.execute({ studentId });
 
     if (result.success) {
-      return this.noContent();
+      return this.ok(result.value);
     }
 
     switch (result.error.constructor) {

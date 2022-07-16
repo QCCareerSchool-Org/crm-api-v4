@@ -34,6 +34,9 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
 
       return Result.success({
         studentId: student.studentId,
+        currencyId: student.currencyId,
+        userId: student.userId,
+        languageId: student.languageId,
         sex: student.sex,
         firstName: student.firstName,
         lastName: student.lastName,
@@ -43,12 +46,19 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
         province: student.province === null ? null : student.province.code,
         postalCode: student.postalCode,
         country: student.country.name,
+        telephoneCountryCode: student.telephoneCountryCode,
+        telephoneNumber: student.telephoneNumber,
+        emailAddress: student.emailAddress,
+        paymentStart: student.paymentStart,
+        paymentDay: student.paymentDay,
+        sms: student.sms,
+        enrollmentCount: student.enrollmentCount,
         created: student.created,
         modified: student.modified,
       });
 
     } catch (err) {
-      this.logger.error('error adding payment method', err instanceof Error ? err.message : err);
+      this.logger.error('error getting student', err instanceof Error ? err.message : err);
       return Result.fail(err instanceof Error ? err : Error('unknown error'));
     }
   }

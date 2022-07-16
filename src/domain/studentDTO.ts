@@ -1,5 +1,8 @@
 export type StudentDTO = {
   studentId: number;
+  currencyId: number;
+  userId: number | null;
+  languageId: number;
   sex: 'M' | 'F';
   firstName: string;
   lastName: string;
@@ -9,6 +12,15 @@ export type StudentDTO = {
   province: string | null;
   postalCode: string | null;
   country: string;
+  telephoneCountryCode: number;
+  telephoneNumber: string;
+  emailAddress: string;
+  paymentStart: Date | null;
+  paymentDay: number | null;
+  // password is omitted
+  // e164 virtual field omitted
+  sms: boolean;
+  // enrollmentCount is omitted
   created: Date;
   modified: Date | null;
 };

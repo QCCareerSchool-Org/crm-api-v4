@@ -55,7 +55,7 @@ enum StudentCenterAccountType {
 
 model Course {
   courseId        Int          @id @db.UnsignedInt @default(autoincrement()) @map("id")
-  schoolId        Int          @db.UnsignedInt()
+  schoolId        Int          @db.UnsignedInt() @map("school_id")
   code            String       @db.Char(2)
   name            String       @db.VarChar(255)
   prefix          String       @db.Char(2)

@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 
 import type { CourseDTO } from '../../domain/courseDTO.js';
+import type { CurrencyDTO } from '../../domain/currencyDTO.js';
 import type { EnrollmentDTO } from '../../domain/enrollmentDTO.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';
@@ -13,6 +14,7 @@ export type GetEnrollmentsRequestDTO = {
 
 export type GetEnrollmentsResponseDTO = Array<EnrollmentDTO & {
   course: CourseDTO;
+  currency: CurrencyDTO;
 }>;
 
 class GetEnrollmentsError extends Error { }
@@ -28,7 +30,7 @@ export class GetEnrollmentsInteractor implements IInteractor<GetEnrollmentsReque
     try {
       const enrollments = await this.prisma.enrollment.findMany({
         where: { studentId },
-        include: { course: true },
+        include: { course: true, currency: true },
       });
 
       return Result.success(enrollments.map(e => ({
@@ -73,6 +75,15 @@ export class GetEnrollmentsInteractor implements IInteractor<GetEnrollmentsReque
           cost: e.course.cost.toNumber(),
           created: e.course.created,
           modified: e.course.modified,
+        },
+        currency: {
+          currencyId: e.currency.currencyId,
+          code: e.currency.code,
+          name: e.currency.name,
+          symbol: e.currency.symbol,
+          exchangeRate: e.currency.exchangeRate.toNumber(),
+          created: e.currency.created,
+          modified: e.currency.modified,
         },
       })));
 

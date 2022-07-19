@@ -76,7 +76,7 @@ model Course {
 model Currency {
   currencyId   Int          @id @db.UnsignedInt @default(autoincrement()) @map("id")
   code         String       @db.Char(3)
-  name         String?      @db.VarChar(255)
+  name         String       @db.VarChar(255)
   symbol       String       @db.VarChar(5)
   exchangeRate Decimal      @db.Decimal(10, 5)
   created      DateTime     @default(now()) @db.Timestamp(0)

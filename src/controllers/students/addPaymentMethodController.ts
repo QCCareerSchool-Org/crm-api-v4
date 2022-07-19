@@ -46,7 +46,7 @@ export class AddPaymentMethodController extends BaseController<Request, Response
   }
 
   protected async executeImpl({ params, body }: Request): Promise<void> {
-    if (!this.isDeleteMethod()) {
+    if (!this.isPostMethod()) {
       return this.methodNotAllowed();
     }
 

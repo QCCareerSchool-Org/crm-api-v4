@@ -78,7 +78,7 @@ model Currency {
   code         String       @db.Char(3)
   name         String       @db.VarChar(255)
   symbol       String       @db.VarChar(5)
-  exchangeRate Decimal      @db.Decimal(10, 5)
+  exchangeRate Decimal      @db.Decimal(10, 5) @map("exchange_rate")
   created      DateTime     @default(now()) @db.Timestamp(0)
   modified     DateTime?    @db.Timestamp(0) @updatedAt
   enrollments  Enrollment[]

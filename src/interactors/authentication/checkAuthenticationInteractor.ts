@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 
 import type { AccessTokenPayload } from '../../domain/accessTokenPayload.js';
+import { IConfigService } from '../../services/config/index.js';
 import type { IJWTService } from '../../services/jwt/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';

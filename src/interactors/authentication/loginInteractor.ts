@@ -14,7 +14,7 @@ import type { ResultType } from '../result.js';
 import { Result } from '../result.js';
 
 type LoginRequestDTO = {
-  username: string;
+  studentId: number;
   password: string;
   stayLoggedIn?: boolean;
   ipAddress: string | null;
@@ -52,10 +52,9 @@ export class LoginInteractor implements IInteractor<LoginRequestDTO, LoginRespon
 
   public async execute(request: LoginRequestDTO): Promise<ResultType<LoginResponseDTO>> {
     try {
-      const studentId = parseInt(request.username, 10);
 
       const student = await this.prisma.student.findFirst({
-        where: { studentId },
+        where: { studentId: request.studentId },
       });
       if (!student) {
         return Result.fail(new LoginUsernameNotFound());

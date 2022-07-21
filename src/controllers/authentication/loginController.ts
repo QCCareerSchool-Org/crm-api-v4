@@ -9,7 +9,7 @@ import { BaseController } from '../baseController.js';
 
 type Request = {
   body: {
-    username: string;
+    studentId: number;
     password: string;
     stayLoggedIn?: boolean;
   };
@@ -20,8 +20,9 @@ type Response = AccessTokenPayload;
 export class LoginController extends BaseController<Request, Response> {
 
   protected async validate(): Promise<Request | false> {
+
     const bodySchema: yup.SchemaOf<Request['body']> = yup.object({
-      username: yup.string().required(),
+      studentId: yup.number().required(),
       password: yup.string().required(),
       stayLoggedIn: yup.boolean(),
     });
@@ -39,7 +40,8 @@ export class LoginController extends BaseController<Request, Response> {
   }
 
   protected async executeImpl({ body }: Request): Promise<void> {
-    const { username, password, stayLoggedIn } = body;
+
+    const { studentId, password, stayLoggedIn } = body;
 
     // read browser data from request (created by middleware)
     const browser = this.res.locals.browser as BrowserDetectInfo | undefined;
@@ -59,7 +61,7 @@ export class LoginController extends BaseController<Request, Response> {
     }
 
     const result = await loginInteractor.execute({
-      username,
+      studentId,
       password,
       stayLoggedIn,
       ipAddress,

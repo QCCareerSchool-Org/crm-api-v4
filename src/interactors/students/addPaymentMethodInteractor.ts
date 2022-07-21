@@ -1,6 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
 
-import type { PaymentMethodDTO } from '../../domain/paymentMethodDTO.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IPaysafeServiceFactory } from '../../services/paysafe/index.js';
 import type { IInteractor } from '../index.js';
@@ -9,15 +8,17 @@ import { Result } from '../result.js';
 
 export type AddPaymentMethodRequestDTO = {
   studentId: number;
-  enrollmentId: number;
+  enrollmentIds: number[];
   paymentToken: string;
 };
 
-export type AddPaymentMethodResponseDTO = PaymentMethodDTO;
+export type AddPaymentMethodResponseDTO = void;
 
 class AddPaymentMethodError extends Error {}
+export class AddPaymentMethodNoEnrollmentsSpecified extends AddPaymentMethodError {}
 export class AddPaymentMethodPaymentTypeNotFound extends AddPaymentMethodError {}
 export class AddPaymentMethodEnrollmentNotFound extends AddPaymentMethodError {}
+export class AddPaymentMethodConflictingCurrency extends AddPaymentMethodError {}
 
 export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodRequestDTO, AddPaymentMethodResponseDTO> {
 
@@ -27,8 +28,12 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
     private readonly logger: ILoggerService
   ) { /* empty */ }
 
-  public async execute({ studentId, enrollmentId, paymentToken }: AddPaymentMethodRequestDTO): Promise<ResultType<AddPaymentMethodResponseDTO>> {
+  public async execute({ studentId, enrollmentIds, paymentToken }: AddPaymentMethodRequestDTO): Promise<ResultType<AddPaymentMethodResponseDTO>> {
     try {
+      if (enrollmentIds.length === 0) {
+        return Result.fail(new AddPaymentMethodNoEnrollmentsSpecified());
+      }
+
       const paymentType = await this.prisma.paymentType.findFirst({
         where: { name: 'Paysafe' },
       });
@@ -36,16 +41,25 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
         return Result.fail(new AddPaymentMethodPaymentTypeNotFound());
       }
 
-      const enrollment = await this.prisma.enrollment.findFirst({
-        where: { enrollmentId, studentId },
+      const enrollments = await this.prisma.enrollment.findMany({
+        where: {
+          studentId,
+          OR: enrollmentIds.map(enrollmentId => ({ enrollmentId })),
+        },
         include: {
           student: { include: { country: true, province: true } },
           course: true,
           currency: true,
         },
       });
-      if (!enrollment) {
+      if (enrollments.length !== enrollmentIds.length) {
         return Result.fail(new AddPaymentMethodEnrollmentNotFound());
+      }
+
+      const enrollment = enrollments[0];
+
+      if (!enrollments.every(e => e.currencyId === enrollment.currencyId)) {
+        return Result.fail(new AddPaymentMethodConflictingCurrency());
       }
 
       const paysafe = this.paysafeServiceFactory.createInstance(enrollment.currency.code);
@@ -68,14 +82,14 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
         paymentToken,
       );
 
-      const paymentMethod = await this.prisma.$transaction(async transaction => {
+      await this.prisma.$transaction(async transaction => {
         await transaction.paymentMethod.updateMany({
           data: { primary: false },
-          where: { enrollmentId },
+          where: { OR: enrollments.map((e => ({ enrollmentId: e.enrollmentId }))) },
         });
-        return transaction.paymentMethod.create({
-          data: {
-            enrollmentId,
+        return transaction.paymentMethod.createMany({
+          data: enrollments.map(e => ({
+            enrollmentId: e.enrollmentId,
             paymentTypeId: paymentType.paymentTypeId,
             primary: true,
             paysafeProfileId: paysafeResult.profileId,
@@ -85,29 +99,11 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
             pan: paysafeResult.maskedPan,
             expiryMonth: paysafeResult.expiryMonth,
             expiryYear: paysafeResult.expiryYear,
-          },
+          })),
         });
       });
 
-      return Result.success({
-        paymentMethodId: paymentMethod.paymentMethodId,
-        enrollmentId: paymentMethod.enrollmentId,
-        paymentTypeId: paymentMethod.paymentTypeId,
-        primary: paymentMethod.primary,
-        paysafeProfileId: paymentMethod.paysafeProfileId,
-        paysafeCardId: paymentMethod.paysafeCardId,
-        paysafePaymentToken: paymentMethod.paysafePaymentToken,
-        paysafeCompany: paymentMethod.paysafeCompany,
-        pan: paymentMethod.pan,
-        expiryMonth: paymentMethod.expiryMonth,
-        expiryYear: paymentMethod.expiryYear,
-        deleted: paymentMethod.deleted,
-        notified: paymentMethod.notified,
-        disabled: paymentMethod.disabled,
-        transactionCount: paymentMethod.transactionCount,
-        created: paymentMethod.created,
-        modified: paymentMethod.modified,
-      });
+      return Result.success(undefined);
 
     } catch (err) {
       this.logger.error('error adding payment method', err instanceof Error ? err.message : err);

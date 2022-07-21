@@ -166,7 +166,7 @@ model Enrollment {
   courseId             Int                        @db.UnsignedInt @map("course_id")
   currencyId           Int                        @db.UnsignedInt @map("currency_id")
   userId               Int?                       @db.UnsignedInt @map("user_id")
-  enrollmentDate       DateTime?                  @db.Timestamp(0) @map("enrollment_date")
+  enrollmentDate       DateTime                   @db.Timestamp(0) @map("enrollment_date")
   expiryDate           DateTime?                  @db.Timestamp(0) @map("expiry_date")
   paymentPlan          EnrollmentPaymentPlan      @map("payment_plan")
   status               EnrollmentStatus?
@@ -181,7 +181,7 @@ model Enrollment {
   paymentOverride      Boolean                    @default(false) @map("payment_override")
   paymentFrequency     EnrollmentPaymentFrequency @default(monthly) @map("payment_frequency")
   paymentDay           Int?                       @db.UnsignedTinyInt @map("payment_day")
-  paymentStart         DateTime                   @db.Timestamp(0) @map("payment_start")
+  paymentStart         DateTime?                  @db.Timestamp(0) @map("payment_start")
   accountId            Int?                       @db.UnsignedInt @map("account_id")
   shippingNote         String?                    @db.Text @map("shipping_note")
   preparedDate         DateTime?                  @db.Timestamp(0) @map("prepared_date")

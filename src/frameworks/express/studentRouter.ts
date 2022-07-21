@@ -13,7 +13,7 @@ const routes: Route[] = [
   [ 'use', '/:studentId', StudentGuardMiddleware ],
   [ 'get', '/:studentId', GetStudentController ],
   [ 'get', '/:studentId/enrollments', GetEnrollmentsController ],
-  [ 'post', '/:studentId/enrollments/:enrollmentId/paymentMethods', AddPaymentMethodController ],
+  [ 'post', '/:studentId/paymentMethods', AddPaymentMethodController ],
 ];
 
 applyRoutes(studentRouter, routes);

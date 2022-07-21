@@ -9,10 +9,9 @@ type Request = {
   params: {
     /** numeric string */
     studentId: string;
-    /** numeric string */
-    enrollmentId: string;
   };
   body: {
+    enrollmentIds: number[];
     paymentToken: string;
   };
 };
@@ -24,9 +23,9 @@ export class AddPaymentMethodController extends BaseController<Request, Response
   protected async validate(): Promise<Request | false> {
     const paramsSchema: yup.SchemaOf<Request['params']> = yup.object({
       studentId: yup.string().matches(/^\d+$/u).defined(),
-      enrollmentId: yup.string().matches(/^\d+$/u).defined(),
     });
     const bodySchema: yup.SchemaOf<Request['body']> = yup.object({
+      enrollmentIds: yup.array().of(yup.number().defined()).defined(),
       paymentToken: yup.string().defined(),
     });
     try {
@@ -34,7 +33,7 @@ export class AddPaymentMethodController extends BaseController<Request, Response
         paramsSchema.validate(this.req.params),
         bodySchema.validate(this.req.body),
       ]);
-      return { params, body };
+      return { params, body: body as Request['body'] };
     } catch (error) {
       if (error instanceof Error) {
         this.badRequest(error.message);
@@ -51,9 +50,8 @@ export class AddPaymentMethodController extends BaseController<Request, Response
     }
 
     const studentId = parseInt(params.studentId, 10);
-    const enrollmentId = parseInt(params.enrollmentId, 10);
 
-    const result = await addPaymentMethodInteractor.execute({ studentId, enrollmentId, paymentToken: body.paymentToken });
+    const result = await addPaymentMethodInteractor.execute({ studentId, enrollmentIds: body.enrollmentIds, paymentToken: body.paymentToken });
 
     if (result.success) {
       return this.noContent();

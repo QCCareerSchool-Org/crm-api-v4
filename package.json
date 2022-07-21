@@ -26,6 +26,7 @@
     "@faker-js/faker": "^7.3.0",
     "@prisma/client": "^4.1.0",
     "@qccareerschool/paysafe": "^0.0.13",
+    "@qccareerschool/winston-nodemailer": "^4.0.4",
     "@types/bcrypt": "^5.0.0",
     "@types/compression": "^1.7.2",
     "@types/cookie-parser": "^1.4.3",

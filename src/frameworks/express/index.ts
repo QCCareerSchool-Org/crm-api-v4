@@ -8,7 +8,8 @@ import express from 'express';
 import helmet from 'helmet';
 
 import { CheckAuthenticationMiddleware } from '../../controllers/authentication/checkAuthenticationMiddleware.js';
-import { environmentConfigService, winstonLoggerService } from '../../services/index.js';
+import { environmentConfigService } from '../../services/config/index.js';
+import { winstonLoggerService } from '../../services/logger/index.js';
 import { asyncWrapper } from './asyncWrapper.js';
 import { authenticationRouter } from './authenticationRouter.js';
 import { router } from './router.js';

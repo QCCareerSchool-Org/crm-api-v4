@@ -1,4 +1,7 @@
 import type { PaysafeResult } from '../../domain/paysafeResult';
+import { environmentConfigService } from '../config/index.js';
+import { winstonLoggerService } from '../logger/index.js';
+import { PaysafeServiceFactory } from './paysafeServiceFactory.js';
 
 export interface IPaysafeServiceFactory {
   createInstance: (currencyCode: string) => IPaysafeService;
@@ -21,3 +24,5 @@ export interface IPaysafeService {
     singleUseToken: string,
   ) => Promise<PaysafeResult>;
 }
+
+export const paysafeServiceFactory = new PaysafeServiceFactory(environmentConfigService, winstonLoggerService);

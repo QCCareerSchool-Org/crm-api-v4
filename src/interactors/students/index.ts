@@ -1,5 +1,6 @@
 import { prisma } from '../../frameworks/prisma/index.js';
-import { paysafeServiceFactory, winstonLoggerService } from '../../services/index.js';
+import { winstonLoggerService } from '../../services/logger/index.js';
+import { paysafeServiceFactory } from '../../services/paysafe/index.js';
 import { AddPaymentMethodInteractor } from './addPaymentMethodInteractor.js';
 import { GetEnrollmentsInteractor } from './getEnrollmentsInteractor.js';
 import { GetStudentInteractor } from './getStudentInteractor.js';

@@ -1,3 +1,5 @@
+import { UUIDService } from './uuidService.js';
+
 export interface IUUIDService {
   /** creates a new UUID v1 */
   createUUID: () => string;
@@ -6,3 +8,5 @@ export interface IUUIDService {
   /** rearange bytes to restore original order */
   binToUUID: (buffer: Buffer) => string;
 }
+
+export const uuidService = new UUIDService();

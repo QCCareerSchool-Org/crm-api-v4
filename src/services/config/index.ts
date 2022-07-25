@@ -1,3 +1,5 @@
+import { EnvironmentConfigService } from './environmentConfigService.js';
+
 export type Environment = 'development' | 'production';
 
 export type Config = {
@@ -32,3 +34,5 @@ export type Config = {
 export interface IConfigService {
   config: Config;
 }
+
+export const environmentConfigService = new EnvironmentConfigService();

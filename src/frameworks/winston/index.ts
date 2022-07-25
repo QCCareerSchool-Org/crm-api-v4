@@ -2,7 +2,7 @@ import type { INodemailerOptions } from '@qccareerschool/winston-nodemailer';
 import { NodemailerTransport } from '@qccareerschool/winston-nodemailer';
 import { createLogger, format, transports } from 'winston';
 
-import { environmentConfigService } from '../../services/index.js';
+import { environmentConfigService } from '../../services/config/index.js';
 
 export const winston = createLogger({
   level: 'info',

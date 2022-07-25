@@ -9,9 +9,9 @@ export type StudentDTO = {
   address1: string;
   address2: string;
   city: string;
-  province: string | null;
+  provinceId: number | null;
   postalCode: string | null;
-  country: string;
+  countryId: number;
   telephoneCountryCode: number;
   telephoneNumber: string;
   emailAddress: string;

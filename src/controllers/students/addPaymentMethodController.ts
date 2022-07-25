@@ -12,7 +12,7 @@ type Request = {
   };
   body: {
     enrollmentIds: number[];
-    paymentToken: string;
+    singleUseToken: string;
   };
 };
 
@@ -26,7 +26,7 @@ export class AddPaymentMethodController extends BaseController<Request, Response
     });
     const bodySchema: yup.SchemaOf<Request['body']> = yup.object({
       enrollmentIds: yup.array().of(yup.number().defined()).defined(),
-      paymentToken: yup.string().defined(),
+      singleUseToken: yup.string().defined(),
     });
     try {
       const [ params, body ] = await Promise.all([
@@ -51,7 +51,7 @@ export class AddPaymentMethodController extends BaseController<Request, Response
 
     const studentId = parseInt(params.studentId, 10);
 
-    const result = await addPaymentMethodInteractor.execute({ studentId, enrollmentIds: body.enrollmentIds, paymentToken: body.paymentToken });
+    const result = await addPaymentMethodInteractor.execute({ studentId, enrollmentIds: body.enrollmentIds, singleUseToken: body.singleUseToken });
 
     if (result.success) {
       return this.noContent();

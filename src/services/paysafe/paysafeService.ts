@@ -1,6 +1,8 @@
 import { Paysafe } from '@qccareerschool/paysafe';
+import { BillingDetails } from '@qccareerschool/paysafe/dist/card-payments/lib/billing-details';
 import { Card } from '@qccareerschool/paysafe/dist/card-payments/lib/card';
 import { Verification } from '@qccareerschool/paysafe/dist/card-payments/verification';
+import { CardExpiry } from '@qccareerschool/paysafe/dist/common/card-expiry';
 import { Address } from '@qccareerschool/paysafe/dist/customer-vault/address';
 import { Card as ProfileCard } from '@qccareerschool/paysafe/dist/customer-vault/card';
 import { Profile } from '@qccareerschool/paysafe/dist/customer-vault/profile';
@@ -10,10 +12,10 @@ import type { PaysafeAddress } from '../../domain/paysafeAddress';
 import type { PaysafeCard } from '../../domain/paysafeCard';
 import type { PaysafeProfile } from '../../domain/paysafeProfile';
 import type { PaysafeResult } from '../../domain/paysafeResult';
+import type { ILoggerService } from '../logger';
 import type { IPaysafeService } from '.';
 
 export class PaysafeService implements IPaysafeService {
-
   private readonly paysafe: Paysafe;
 
   public constructor(
@@ -22,6 +24,7 @@ export class PaysafeService implements IPaysafeService {
     apiPassword: string,
     environment: 'LIVE' | 'TEST',
     accountNumber: string,
+    private readonly logger: ILoggerService,
   ) {
     this.paysafe = new Paysafe(apiKey, apiPassword, environment, accountNumber);
   }
@@ -39,13 +42,13 @@ export class PaysafeService implements IPaysafeService {
     provinceCode: string | null,
     postalCode: string | null,
     countryCode: string,
-    token: string,
+    singleUseToken: string,
   ): Promise<PaysafeResult> {
+    await this.verifyCard(address1, address2, city, provinceCode, postalCode, countryCode, singleUseToken);
     const profile = await this.createProfile(studentNumber, firstName, lastName, sex, emailAddress, telephoneNumber);
     const address = await this.createAddress(profile.profileId, address1, address2, city, provinceCode, postalCode, countryCode);
-    const card = await this.createCard(profile.profileId, token);
-    await this.updateCardBillingAddress(profile.profileId, address.addressId, card.cardId);
-    await this.verifyCard(token);
+    const card = await this.createCard(profile.profileId, singleUseToken);
+    await this.updateCardBillingAddress(profile.profileId, address.addressId, card.cardId, card.expiryMonth, card.expiryYear);
 
     return {
       profileId: profile.profileId,
@@ -77,8 +80,10 @@ export class PaysafeService implements IPaysafeService {
       p.setPhone(telephoneNumber);
     }
     const profile = await this.paysafe.getCustomerServiceHandler().createProfile(p);
+    this.logger.info('profile', profile);
     const error = profile.getError();
     if (error) {
+      this.logger.error('profile error', error);
       throw error;
     }
     const profileId = profile.getId();
@@ -112,8 +117,10 @@ export class PaysafeService implements IPaysafeService {
     a.setCountry(countryCode);
     a.setDefaultShippingAddressIndicator(true);
     const address = await this.paysafe.getCustomerServiceHandler().createAddress(profileId, a);
+    this.logger.info('address', address);
     const error = address.getError();
     if (error) {
+      this.logger.error('address error', error);
       throw error;
     }
     const addressId = address.getId();
@@ -127,17 +134,15 @@ export class PaysafeService implements IPaysafeService {
 
   public async createCard(
     profileId: string,
-    token: string,
+    singleUseToken: string,
   ): Promise<PaysafeCard> {
-    // const e = new CardExpiry();
-    // e.setMonth(expiryMonth);
-    // e.setYear(expiryYear);
     const c = new ProfileCard();
-    c.setPaymentToken(token);
-    // c.setCardExpiry(e);
+    c.setSingleUseToken(singleUseToken);
     const card = await this.paysafe.getCustomerServiceHandler().createCard(profileId, c);
+    this.logger.info('card', card);
     const error = card.getError();
     if (error) {
+      this.logger.error('card error', error);
       throw error;
     }
     const cardId = card.getId();
@@ -177,26 +182,56 @@ export class PaysafeService implements IPaysafeService {
     };
   }
 
-  public async updateCardBillingAddress(profileId: string, addressId: string, cardId: string): Promise<void> {
+  public async updateCardBillingAddress(profileId: string, addressId: string, cardId: string, expiryMonth: number, expiryYear: number): Promise<void> {
+    const e = new CardExpiry();
+    e.setMonth(expiryMonth);
+    e.setYear(expiryYear);
     const c = new ProfileCard();
-    // cardUpdate.setCardExpiry(cardExpiryResult); // TODO: why are we doing this?
+    c.setCardExpiry(e);
     c.setBillingAddressId(addressId);
     const card = await this.paysafe.getCustomerServiceHandler().updateCard(profileId, cardId, c);
+    this.logger.info('update card', card);
     const error = card.getError();
     if (error) {
+      this.logger.error('update card error', error);
       throw error;
     }
   }
 
-  public async verifyCard(token: string): Promise<void> {
+  public async verifyCard(
+    address1: string,
+    address2: string,
+    city: string,
+    provinceCode: string | null,
+    postalCode: string | null,
+    countryCode: string,
+    singleUseToken: string
+  ): Promise<void> {
     const c = new Card();
-    c.setPaymentToken(token);
+    c.setPaymentToken(singleUseToken);
+
+    const b = new BillingDetails();
+    b.setStreet(address1);
+    if (address2) {
+      b.setStreet2(address2);
+    }
+    b.setCity(city);
+    if ([ 'CA', 'US', 'AU' ].includes(countryCode) && provinceCode) {
+      b.setState(provinceCode);
+    }
+    b.setZip(postalCode ?? 'NA');
+    b.setCountry(countryCode);
+
     const v = new Verification();
     v.setMerchantRefNum(this.createOrderId());
     v.setCard(c);
+    v.setBillingDetails(b);
+
     const verification = await this.paysafe.getCardServiceHandler().verify(v);
+    this.logger.info('verification', verification);
     const error = verification.getError();
     if (error) {
+      this.logger.error('verification error', error);
       throw error;
     }
   }

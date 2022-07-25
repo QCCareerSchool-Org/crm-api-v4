@@ -133,7 +133,7 @@ export class EnvironmentConfigService implements IConfigService {
           apiKey: paysafeGBApiKey,
           apiPassword: paysafeGBApiPassword,
           accounts: {
-            USD: paysafeGBAccountGBP,
+            GBP: paysafeGBAccountGBP,
             AUD: paysafeGBAccountAUD,
             NZD: paysafeGBAccountNZD,
           },

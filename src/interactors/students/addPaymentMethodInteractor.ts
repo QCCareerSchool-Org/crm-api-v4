@@ -9,7 +9,7 @@ import { Result } from '../result.js';
 export type AddPaymentMethodRequestDTO = {
   studentId: number;
   enrollmentIds: number[];
-  paymentToken: string;
+  singleUseToken: string;
 };
 
 export type AddPaymentMethodResponseDTO = void;
@@ -28,7 +28,7 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
     private readonly logger: ILoggerService
   ) { /* empty */ }
 
-  public async execute({ studentId, enrollmentIds, paymentToken }: AddPaymentMethodRequestDTO): Promise<ResultType<AddPaymentMethodResponseDTO>> {
+  public async execute({ studentId, enrollmentIds, singleUseToken }: AddPaymentMethodRequestDTO): Promise<ResultType<AddPaymentMethodResponseDTO>> {
     try {
       if (enrollmentIds.length === 0) {
         return Result.fail(new AddPaymentMethodNoEnrollmentsSpecified());
@@ -79,7 +79,7 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
         enrollment.student.province === null ? null : enrollment.student.province.code,
         enrollment.student.postalCode,
         enrollment.student.country.code,
-        paymentToken,
+        singleUseToken,
       );
 
       await this.prisma.$transaction(async transaction => {

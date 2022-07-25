@@ -18,6 +18,6 @@ export interface IPaysafeService {
     provinceCode: string | null,
     postalCode: string | null,
     countryCode: string,
-    token: string,
+    singleUseToken: string,
   ) => Promise<PaysafeResult>;
 }

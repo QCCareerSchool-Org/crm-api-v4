@@ -250,7 +250,7 @@ model PaymentMethod {
   deleted             Boolean         @default(false)
   notified            Boolean         @default(true)
   disabled            Boolean         @default(false)
-  transactionCount    Int             @db.UnsignedInt @default(0)
+  transactionCount    Int             @db.UnsignedInt @default(0) @map("transaction_count")
   created             DateTime        @default(now()) @db.Timestamp(0)
   modified            DateTime?       @db.Timestamp(0) @updatedAt
   enrollment          Enrollment?     @relation(fields: [enrollmentId], references: [enrollmentId], map: "payment_methods_ibfk_1")

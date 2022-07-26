@@ -1,7 +1,6 @@
 import * as yup from 'yup';
 
 import type { AccessTokenPayload } from '../../domain/accessTokenPayload.js';
-import { IConfigService } from '../../services/config/index.js';
 import type { IJWTService } from '../../services/jwt/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';
@@ -37,13 +36,15 @@ export class CheckAuthenticationInteractor implements IInteractor<CheckAuthentic
         return Result.fail(new CheckAuthenticationVerifyError());
       }
 
-      const schema: yup.SchemaOf<AccessTokenPayload> = yup.object({
-        sub: yup.number().defined(),
-        iss: yup.string().defined().equals([ 'https://crm.qccareerschool.com' ]),
-        userType: yup.string().defined().equals([ 'student' ]),
+      const schema = yup.object({ // const schema: yup.SchemaOf<AccessTokenPayload> = yup.object({
+        crm: yup.object({
+          id: yup.number().defined(),
+          type: yup.mixed().oneOf<'admin' | 'student'>([ 'admin', 'student' ]).defined(),
+        }).default(undefined),
         exp: yup.number().defined(),
         xsrf: yup.string().defined(),
       });
+
       let accessTokenPayload: AccessTokenPayload;
       try {
         accessTokenPayload = await schema.validate(decoded);

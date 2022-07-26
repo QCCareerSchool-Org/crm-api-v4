@@ -78,9 +78,10 @@ export class LoginInteractor implements IInteractor<LoginRequestDTO, LoginRespon
 
       // create a jwt access token
       const accessTokenPayload: AccessTokenPayload = {
-        sub: student.studentId,
-        iss: 'https://crm.qccareerschool.com',
-        userType: 'student',
+        crm: {
+          id: student.studentId,
+          type: 'student',
+        },
         exp: accessExp,
         xsrf: xsrfTokenString, // store the XSRF token in the payload
       };

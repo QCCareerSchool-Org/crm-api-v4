@@ -40,10 +40,10 @@ export class StudentGuardMiddleware extends BaseMiddleware<Request, void> {
 
   private isAllowed(studentId: number): boolean {
     if (isAccessTokenPayload(this.res.locals.jwt)) {
-      if (this.res.locals.jwt.userType === 'student' && this.res.locals.jwt.sub === studentId) {
+      if (this.res.locals.jwt.crm?.type === 'student' && this.res.locals.jwt.crm?.id === studentId) {
         return true;
       }
-      if (this.res.locals.jwt.userType === 'administrator') {
+      if (this.res.locals.jwt.crm?.type === 'admin') {
         return true;
       }
     }

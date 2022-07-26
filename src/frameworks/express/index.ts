@@ -31,7 +31,6 @@ app.use(compression());
 app.use(express.json({ limit: 524_288 })); // 512 KB
 app.use(cookieParser());
 app.use(cors(corsOptions));
-// app.use(cors({ origin: '*', credentials: true }));
 
 app.get('/v4/test', (req, res) => {
   res.setHeader('content-type', 'text/html');

@@ -62,9 +62,10 @@ export class RefreshInteractor implements IInteractor<RefreshRequestDTO, Refresh
 
       // create a new jwt access token
       const accessTokenPayload: AccessTokenPayload = {
-        sub: refreshToken.studentId,
-        iss: 'https://crm.qccareerschool.com',
-        userType: 'student',
+        crm: {
+          id: refreshToken.studentId,
+          type: 'student',
+        },
         exp: accessExp,
         xsrf: xsrfTokenString, // store the XSRF token in the payload
       };

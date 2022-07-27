@@ -6,6 +6,7 @@ import type { CurrencyDTO } from '../../domain/currencyDTO.js';
 import type { EnrollmentDTO } from '../../domain/enrollmentDTO.js';
 import type { ProvinceDTO } from '../../domain/provinceDTO.js';
 import type { StudentDTO } from '../../domain/studentDTO.js';
+import type { TransactionDTO } from '../../domain/transactionDTO.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';
 import type { ResultType } from '../result.js';
@@ -21,6 +22,7 @@ export type GetStudentResponseDTO = StudentDTO & {
   enrollments: Array<EnrollmentDTO & {
     course: CourseDTO;
     currency: CurrencyDTO;
+    transactions: TransactionDTO[];
   }>;
 };
 
@@ -42,10 +44,7 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
           country: true,
           province: true,
           enrollments: {
-            include: {
-              course: true,
-              currency: true,
-            },
+            include: { course: true, currency: true, transactions: true },
           },
         },
       });
@@ -139,6 +138,48 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
             created: e.currency.created,
             modified: e.currency.modified,
           },
+          transactions: e.transactions.map(t => {
+            const transactionDateTime = new Date(t.transactionDate);
+            if (t.transactionTime) {
+              transactionDateTime.setHours(t.transactionTime.getHours());
+              transactionDateTime.setMinutes(t.transactionTime.getMinutes());
+              transactionDateTime.setSeconds(t.transactionTime.getSeconds());
+              transactionDateTime.setMilliseconds(t.transactionTime.getMilliseconds());
+            }
+            return {
+              transactionId: t.transactionId,
+              enrollmentId: t.enrollmentId,
+              paymentMethodId: t.paymentMethodId,
+              userId: t.userId,
+              parentId: t.parentId,
+              transactionDateTime,
+              amount: t.amount.toNumber(),
+              attemptedAmount: t.attemptedAmount.toNumber(),
+              usdAmount: t.usdAmount?.toNumber() ?? null,
+              refund: t.refund.toNumber(),
+              chargeback: t.chargeback.toNumber(),
+              orderId: t.orderId,
+              responseCode: t.responseCode,
+              authCode: t.authCode,
+              referenceNumber: t.referenceNumber,
+              settlementId: t.settlementId,
+              transactionNumber: t.transactionNumber,
+              response: t.response,
+              description: t.description,
+              posted: t.posted,
+              postedDate: t.postedDate,
+              notified: t.notified,
+              extraCharge: t.extraCharge,
+              auto: t.auto,
+              reattempt: t.reattempt,
+              transactionType: t.transactionType,
+              voided: t.voided,
+              notes: t.notes,
+              severity: t.severity,
+              created: t.created,
+              modified: t.modified,
+            };
+          }),
         })),
       });
 

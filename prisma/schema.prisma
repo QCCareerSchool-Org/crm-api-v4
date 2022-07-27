@@ -23,6 +23,7 @@ model User {
   modified       DateTime?      @db.Timestamp(0) @updatedAt
   students       Student[]
   enrollments    Enrollment[]
+  transactions   Transaction[]
   refreshTokens  RefreshToken[]
 
   @@map("users")
@@ -197,6 +198,7 @@ model Enrollment {
   currency             Currency                   @relation(fields: [currencyId], references: [currencyId], map: "enrollments_ibfk_3")
   user                 User?                      @relation(fields: [userId], references: [userId], map: "enrollments_ibfk_4")
   paymentMethods       PaymentMethod[]
+  transactions         Transaction[]
 
   @@map("enrollments")
   @@unique([studentId, courseId], map: "student_id_2")
@@ -255,6 +257,8 @@ model PaymentMethod {
   modified            DateTime?       @db.Timestamp(0) @updatedAt
   enrollment          Enrollment?     @relation(fields: [enrollmentId], references: [enrollmentId], map: "payment_methods_ibfk_1")
   paymentType         PaymentType     @relation(fields: [paymentTypeId], references: [paymentTypeId], map: "payment_methods_ibfk_2")
+  transactions        Transaction[]
+
   @@map("payment_methods")
 }
 
@@ -262,6 +266,60 @@ enum PaysafeCompany {
   CA
   US
   GB
+}
+
+model Transaction {
+  transactionId     Int             @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  enrollmentId      Int             @db.UnsignedInt @map("enrollment_id")
+  paymentMethodId   Int?            @db.UnsignedInt @map("payment_method_id")
+  userId            Int?            @db.UnsignedInt @map("user_id")
+  parentId          Int?            @db.UnsignedInt @map("parent_id")
+  transactionDate   DateTime        @db.Date @map("transaction_date")
+  transactionTime   DateTime?       @db.Time @map("transaction_time")
+  amount            Decimal         @db.Decimal(10, 2)
+  attemptedAmount   Decimal         @db.Decimal(10, 2) @map("attempted_amount")
+  usdAmount         Decimal?        @db.Decimal(10, 2) @map("USD_amount")
+  refund            Decimal         @db.Decimal(10, 2) @default(0)
+  chargeback        Decimal         @db.Decimal(10, 2) @default(0)
+  orderId           String?         @db.VarChar(99) @map("order_id")
+  responseCode      Int?            @db.UnsignedMediumInt @map("response_code")
+  authCode          String?         @db.Char(8) @map("authorization_code")
+  referenceNumber   String?         @db.Char(36) @map("reference_number")
+  settlementId      String?         @db.Char(36) @map("settlement_id")
+  transactionNumber String?         @db.VarChar(20) @map("transaction_number")
+  response          String?         @db.Text
+  description       String?         @db.VarChar(20)
+  posted            Boolean?        @db.TinyInt
+  postedDate        DateTime?       @db.Timestamp(0) @map("posted_date")
+  notified          Boolean?        @db.TinyInt
+  extraCharge       Boolean         @db.TinyInt @default(false) @map("extra_charge")
+  auto              Boolean         @db.TinyInt @default(false)
+  reattempt         Boolean         @db.TinyInt @default(false)
+  transactionType   TransactionType @default(charge) @map("transaction_type")
+  voided            Boolean         @db.TinyInt @default(false)
+  notes             String?         @db.Text
+  severity          Int?            @db.Int
+  created           DateTime        @default(now()) @db.Timestamp(0)
+  modified          DateTime?       @db.Timestamp(0) @updatedAt
+  enrollment        Enrollment      @relation(fields: [enrollmentId], references: [enrollmentId], map: "transactions_ibfk_1")
+  paymentMethod     PaymentMethod?  @relation(fields: [paymentMethodId], references: [paymentMethodId], map: "transactions_ibfk_2")
+  user              User?           @relation(fields: [userId], references: [userId], map: "transactions_ibfk_3")
+  parent            Transaction?    @relation("ParentChildren", fields: [parentId], references: [transactionId], map: "transactions_ibfk_4")
+  children          Transaction[]   @relation("ParentChildren")
+
+  @@map("transactions")
+  @@index([enrollmentId], map: "enrollment_id")
+  @@index([paymentMethodId], map: "payment_method_id")
+  @@index([userId], map: "user_id")
+  @@index([parentId], map: "parent_id")
+}
+
+enum TransactionType {
+  charge
+  refund
+  chargeback
+  nsfFee @map("nsf fee")
+  void
 }
 
 model RefreshToken {

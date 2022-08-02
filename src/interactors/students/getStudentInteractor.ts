@@ -85,6 +85,7 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
           countryId: student.country.countryId,
           code: student.country.code,
           name: student.country.name,
+          needsPostalCode: student.country.needsPostalCode,
         },
         enrollments: student.enrollments.map(e => ({
           enrollmentId: e.enrollmentId,

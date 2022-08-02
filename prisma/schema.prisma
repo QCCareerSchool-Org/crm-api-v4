@@ -24,6 +24,7 @@ model User {
   students       Student[]
   enrollments    Enrollment[]
   transactions   Transaction[]
+  notes          Note[]
   refreshTokens  RefreshToken[]
 
   @@map("users")
@@ -69,6 +70,7 @@ model Course {
   modified        DateTime?    @db.Timestamp(0) @updatedAt
   school          School       @relation(fields: [schoolId], references: [schoolId], map: "courses_ibfk_1")
   enrollments     Enrollment[]
+  notes           Note[]
 
   @@map("courses")
   @@index([schoolId], map: "school_id")
@@ -146,6 +148,7 @@ model Student {
   country              Country        @relation(fields: [countryId], references: [countryId], map: "students_ibfk_2")
   user                 User?          @relation(fields: [userId], references: [userId], map: "students_ibfk_3")
   enrollments          Enrollment[]
+  notes                Note[]
   refreshTokens        RefreshToken[]
 
   @@map("students")
@@ -344,6 +347,40 @@ model RefreshToken {
 
   @@map("refresh_tokens")
   @@unique([token], map: "token")
-  @@index([studentId], map: "account_id")
+  @@index([studentId], map: "student_id")
   @@index([userId], map: "user_id")
+}
+
+model TelephoneCountryCode {
+  telephoneCountryCodeId Int    @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  code                   Int    @db.UnsignedSmallInt
+  region                 String @db.VarChar(255)
+
+  @@map("country_calling_codes")
+}
+
+model Note {
+  noteId    Int       @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  studentId Int       @db.UnsignedInt @map("student_id")
+  courseId  Int?      @db.UnsignedInt @map("course_id")
+  userId    Int?      @db.UnsignedInt @map("user_id")
+  note      String    @db.LongText
+  type      NoteType  @default(automatic)
+  starred   Boolean   @db.TinyInt @default(false)
+  created   DateTime  @default(now()) @db.Timestamp(0)
+  modified  DateTime? @db.Timestamp(0) @updatedAt
+  student   Student   @relation(fields: [studentId], references: [studentId], onDelete: Cascade, map: "notes_ibfk_1")
+  course    Course?   @relation(fields: [courseId], references: [courseId], onDelete: Cascade, map: "notes_ibfk_3")
+  user      User?     @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "notes_ibfk_2")
+
+  @@map("notes")
+  @@index([studentId], map: "student_id")
+  @@index([courseId], map: "course_id")
+  @@index([userId], map: "user_id")
+}
+
+enum NoteType {
+  general
+  automatic
+  tutorial
 }

@@ -1,23 +1,26 @@
 import * as yup from 'yup';
 
-import type { GetEnrollmentsResponseDTO } from '../../interactors/students/getEnrollmentsInteractor.js';
-import { getEnrollmentsInteractor } from '../../interactors/students/index.js';
+import type { GetEnrollmentResponseDTO } from '../../interactors/students/getEnrollmentInteractor.js';
+import { getEnrollmentInteractor } from '../../interactors/students/index.js';
 import { BaseController } from '../baseController.js';
 
 type Request = {
   params: {
     /** numeric string */
     studentId: string;
+    /** numeric string */
+    enrollmentId: string;
   };
 };
 
-type Response = GetEnrollmentsResponseDTO;
+type Response = GetEnrollmentResponseDTO;
 
-export class GetEnrollmentsController extends BaseController<Request, Response> {
+export class GetEnrollmentController extends BaseController<Request, Response> {
 
   protected async validate(): Promise<Request | false> {
     const paramsSchema: yup.SchemaOf<Request['params']> = yup.object({
       studentId: yup.string().matches(/^\d+$/u).defined(),
+      enrollmentId: yup.string().matches(/^\d+$/u).defined(),
     });
     try {
       const params = await paramsSchema.validate(this.req.params);
@@ -38,8 +41,9 @@ export class GetEnrollmentsController extends BaseController<Request, Response> 
     }
 
     const studentId = parseInt(params.studentId, 10);
+    const enrollmentId = parseInt(params.enrollmentId, 10);
 
-    const result = await getEnrollmentsInteractor.execute({ studentId });
+    const result = await getEnrollmentInteractor.execute({ studentId, enrollmentId });
 
     if (result.success) {
       return this.ok(result.value);

@@ -42,7 +42,7 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
           course: true,
           currency: true,
           transactions: { include: { paymentMethod: true } },
-          paymentMethods: { where: { deleted: false, disabled: false, paymentType: { name: 'paysafe' } } },
+          paymentMethods: { where: { deleted: false, paymentType: { name: 'paysafe' } } },
         },
       });
       if (!enrollment) {

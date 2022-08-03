@@ -1,10 +1,13 @@
-import type { PaysafeResult } from '../../domain/paysafeResult';
+import type { PaysafeCompany } from '../../domain/paymentMethodDTO';
+import type { PaysafeChargeResult } from '../../domain/paysafeChargeResult';
+import type { PaysafeCreateProfileResult } from '../../domain/paysafeCreateProfileResult';
 import { environmentConfigService } from '../config/index.js';
 import { winstonLoggerService } from '../logger/index.js';
 import { PaysafeServiceFactory } from './paysafeServiceFactory.js';
 
 export interface IPaysafeServiceFactory {
-  createInstance: (currencyCode: string) => IPaysafeService;
+  getCompany: (currencyCode: string) => PaysafeCompany;
+  createInstance: (company: PaysafeCompany, currencyCode: string) => IPaysafeService;
 }
 
 export interface IPaysafeService {
@@ -22,7 +25,9 @@ export interface IPaysafeService {
     postalCode: string | null,
     countryCode: string,
     singleUseToken: string,
-  ) => Promise<PaysafeResult>;
+  ) => Promise<PaysafeCreateProfileResult>;
+
+  charge: (studentNumber: string, amount: number, paymentToken: string) => Promise<PaysafeChargeResult>;
 }
 
 export const paysafeServiceFactory = new PaysafeServiceFactory(environmentConfigService, winstonLoggerService);

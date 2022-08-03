@@ -1,6 +1,6 @@
 import type { PaysafeCompany } from './paymentMethodDTO';
 
-export type PaysafeResult = {
+export type PaysafeCreateProfileResult = {
   profileId: string;
   cardId: string;
   paymentToken: string;

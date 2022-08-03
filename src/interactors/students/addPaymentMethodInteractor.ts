@@ -9,6 +9,7 @@ import { Result } from '../result.js';
 export type AddPaymentMethodRequestDTO = {
   studentId: number;
   enrollmentIds: number[];
+  company: string;
   singleUseToken: string;
 };
 
@@ -19,6 +20,7 @@ export class AddPaymentMethodNoEnrollmentsSpecified extends AddPaymentMethodErro
 export class AddPaymentMethodPaymentTypeNotFound extends AddPaymentMethodError {}
 export class AddPaymentMethodEnrollmentNotFound extends AddPaymentMethodError {}
 export class AddPaymentMethodConflictingCurrency extends AddPaymentMethodError {}
+export class AddPaymentMethodInvalidCompany extends AddPaymentMethodError {}
 
 export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodRequestDTO, AddPaymentMethodResponseDTO> {
 
@@ -28,7 +30,7 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
     private readonly logger: ILoggerService
   ) { /* empty */ }
 
-  public async execute({ studentId, enrollmentIds, singleUseToken }: AddPaymentMethodRequestDTO): Promise<ResultType<AddPaymentMethodResponseDTO>> {
+  public async execute({ studentId, enrollmentIds, company, singleUseToken }: AddPaymentMethodRequestDTO): Promise<ResultType<AddPaymentMethodResponseDTO>> {
     try {
       if (enrollmentIds.length === 0) {
         return Result.fail(new AddPaymentMethodNoEnrollmentsSpecified());
@@ -62,7 +64,11 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
         return Result.fail(new AddPaymentMethodConflictingCurrency());
       }
 
-      const paysafe = this.paysafeServiceFactory.createInstance(enrollment.currency.code);
+      if (company !== 'CA' && company !== 'US' && company !== 'GB') {
+        return Result.fail(new AddPaymentMethodInvalidCompany());
+      }
+
+      const paysafe = this.paysafeServiceFactory.createInstance(company, enrollment.currency.code);
 
       const studentNumber = `${enrollment.course.prefix}${enrollment.enrollmentId}`;
 

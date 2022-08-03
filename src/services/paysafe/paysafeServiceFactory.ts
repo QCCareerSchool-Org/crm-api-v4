@@ -8,8 +8,22 @@ export class PaysafeServiceFactory implements IPaysafeServiceFactory {
 
   public constructor(private readonly configService: IConfigService, private readonly logger: ILoggerService) { /* empty */ }
 
-  public createInstance(currencyCode: string): IPaysafeService {
-    const company = this.getCompany(currencyCode);
+  public getCompany(currencyCode: string): PaysafeCompany {
+    switch (currencyCode) {
+      case 'CAD':
+        return 'CA';
+      case 'USD':
+        return 'US';
+      case 'GBP':
+      case 'AUD':
+      case 'NZD':
+        return 'GB';
+      default:
+        throw Error('Unsupported currency for Paysafe');
+    }
+  }
+
+  public createInstance(company: PaysafeCompany, currencyCode: string): IPaysafeService {
     const paysafeConfig = this.configService.config.paysafe[company];
     const accountNumber = paysafeConfig.accounts[currencyCode];
     if (typeof accountNumber === 'undefined') {
@@ -23,20 +37,5 @@ export class PaysafeServiceFactory implements IPaysafeServiceFactory {
       accountNumber,
       this.logger,
     );
-  }
-
-  private getCompany(currencyCode: string): PaysafeCompany {
-    switch (currencyCode) {
-      case 'CAD':
-        return 'CA';
-      case 'USD':
-        return 'US';
-      case 'GBP':
-      case 'AUD':
-      case 'NZD':
-        return 'GB';
-      default:
-        throw Error('Unsupported currency for Paysafe');
-    }
   }
 }

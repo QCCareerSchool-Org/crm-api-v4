@@ -1,6 +1,8 @@
 import { Paysafe } from '@qccareerschool/paysafe';
+import { Authorization } from '@qccareerschool/paysafe/dist/card-payments/authorization';
 import { BillingDetails } from '@qccareerschool/paysafe/dist/card-payments/lib/billing-details';
 import { Card } from '@qccareerschool/paysafe/dist/card-payments/lib/card';
+import { Settlement } from '@qccareerschool/paysafe/dist/card-payments/settlement';
 import { Verification } from '@qccareerschool/paysafe/dist/card-payments/verification';
 import { CardExpiry } from '@qccareerschool/paysafe/dist/common/card-expiry';
 import { Address } from '@qccareerschool/paysafe/dist/customer-vault/address';
@@ -10,8 +12,9 @@ import { Profile } from '@qccareerschool/paysafe/dist/customer-vault/profile';
 import type { PaysafeCompany } from '../../domain/paymentMethodDTO';
 import type { PaysafeAddress } from '../../domain/paysafeAddress';
 import type { PaysafeCard } from '../../domain/paysafeCard';
+import type { PaysafeChargeResult } from '../../domain/paysafeChargeResult';
+import type { PaysafeCreateProfileResult } from '../../domain/paysafeCreateProfileResult';
 import type { PaysafeProfile } from '../../domain/paysafeProfile';
-import type { PaysafeResult } from '../../domain/paysafeResult';
 import type { ILoggerService } from '../logger';
 import type { IPaysafeService } from '.';
 
@@ -43,7 +46,7 @@ export class PaysafeService implements IPaysafeService {
     postalCode: string | null,
     countryCode: string,
     singleUseToken: string,
-  ): Promise<PaysafeResult> {
+  ): Promise<PaysafeCreateProfileResult> {
     await this.verifyCard(address1, address2, city, provinceCode, postalCode, countryCode, singleUseToken);
     const profile = await this.createProfile(studentNumber, firstName, lastName, sex, emailAddress, telephoneNumber);
     const address = await this.createAddress(profile.profileId, address1, address2, city, provinceCode, postalCode, countryCode);
@@ -261,5 +264,47 @@ export class PaysafeService implements IPaysafeService {
       now.getSeconds().toString() +
       now.getMilliseconds().toString();
     return studentNumber + '_' + dateString;
+  }
+
+  public async charge(studentNumber: string, amount: number, paymentToken: string): Promise<PaysafeChargeResult> {
+    const orderId = this.createCustomerId(studentNumber);
+
+    const c = new Card();
+    c.setPaymentToken(paymentToken);
+
+    const a = new Authorization();
+    a.setCard(c);
+    a.setAmount(Math.floor(amount * 100));
+    a.setSettleWithAuth(true);
+    a.setMerchantRefNum(orderId);
+    a.setRecurring('RECURRING');
+
+    const authorization = await this.paysafe.getCardServiceHandler().authorize(a);
+    this.logger.info('authorization', authorization);
+    const error = authorization.getError();
+    if (error) {
+      this.logger.error('authorization error', error);
+    }
+
+    const transactionDateTime = authorization.getTxnTime() ?? new Date();
+
+    let settlementId: string | null = null;
+    const settlements = authorization.getSettlements();
+    if (settlements?.length) {
+      const id = settlements[0].getId();
+      if (typeof id !== 'undefined') {
+        settlementId = id;
+      }
+    }
+
+    return {
+      date: transactionDateTime,
+      amount: authorization.getStatus() === 'COMPLETED' ? amount : 0,
+      orderId,
+      responseCode: error?.getCode() ?? null,
+      authCode: authorization.getAuthCode() ?? null,
+      response: error?.getMessage() ?? null,
+      settlementId,
+    };
   }
 }

@@ -69,11 +69,11 @@ export class ChargePaymentMethodController extends BaseController<Request, Respo
       case ChargePaymentMethodUnlinkedEnrollment:
         return this.internalServerError('Unlinked enrollment');
       case ChargePaymentMethodEnrollmentTransferred:
-        return this.badRequest('Enrollment has transferred');
+        return this.badRequest('Status is transferred');
       case ChargePaymentMethodEnrollmentWithdrawn:
-        return this.badRequest('Enrollment has withdrawn');
+        return this.badRequest('Status is withdrawn');
       case ChargePaymentMethodEnrollmentRefunded:
-        return this.badRequest('Enrollment has received end-of-course refund');
+        return this.badRequest('Received end-of-course refund');
       case ChargePaymentMethodUnsupportedPaymentType:
         return this.badRequest('Unsupported payment type');
       case ChargePaymentMethodPaysafeCompanyMissing:

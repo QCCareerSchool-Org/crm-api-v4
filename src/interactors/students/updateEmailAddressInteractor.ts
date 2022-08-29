@@ -1,6 +1,5 @@
-import type { PrismaClient } from '@prisma/client';
-
 import type { StudentDTO } from '../../domain/studentDTO.js';
+import type { PrismaClient } from '../../frameworks/prisma/index.js';
 import type { IEmailValidatorService } from '../../services/emailValidator/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';

@@ -1,8 +1,7 @@
-import type { PrismaClient, Province } from '@prisma/client';
-
 import type { CountryDTO } from '../../domain/countryDTO.js';
 import type { ProvinceDTO } from '../../domain/provinceDTO.js';
 import type { StudentDTO } from '../../domain/studentDTO.js';
+import type { PrismaClient, Province } from '../../frameworks/prisma/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';
 import type { ResultType } from '../result.js';

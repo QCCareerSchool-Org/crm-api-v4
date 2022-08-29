@@ -11,3 +11,7 @@ jwtRS256.pub.key
 755108159-intermediate-1.crt
 755108159-intermediate-2.crt
 geolite2
+mysql-ca.pem
+mysql-client-cert.pem
+mysql-client-key.pem
+mysql-client.p12

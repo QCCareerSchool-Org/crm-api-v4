@@ -1,8 +1,7 @@
-import type { PrismaClient } from '@prisma/client';
-
 import type { EnrollmentDTO } from '../../domain/enrollmentDTO.js';
 import type { PaymentMethodDTO } from '../../domain/paymentMethodDTO.js';
 import type { TransactionDTO } from '../../domain/transactionDTO.js';
+import type { PrismaClient, RemotePrismaClient } from '../../frameworks/prisma/index.js';
 import type { IDecimalService } from '../../services/decimal/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IPaysafeServiceFactory } from '../../services/paysafe/index.js';
@@ -41,6 +40,7 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
 
   public constructor(
     private readonly prisma: PrismaClient,
+    private readonly remotePrisma: RemotePrismaClient,
     private readonly decimalService: IDecimalService,
     private readonly paysafeServiceFactory: IPaysafeServiceFactory,
     private readonly logger: ILoggerService
@@ -114,8 +114,10 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
 
       const paysafeResult = await paysafe.charge(studentNumber, amount, paymentMethod.paysafePaymentToken);
 
+      const minimumPaymentMade = paysafeResult.amount >= Math.min(enrollment.installment.toNumber(), amountRemaining);
+
       const insertedTransaction = await this.prisma.$transaction(async transaction => {
-        if (enrollment.status === 'H' && amount >= Math.min(enrollment.installment.toNumber(), amountRemaining)) {
+        if (enrollment.status === 'H' && minimumPaymentMade) {
           // take the enrollment off hold
           await transaction.enrollment.update({
             data: { status: null, statusDate: null },
@@ -146,6 +148,29 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
           include: { enrollment: true, paymentMethod: true },
         });
       });
+
+      // remove hold status in the Online Student Center
+      if (minimumPaymentMade) {
+        try {
+          const remoteEnrollment = await this.remotePrisma.enrollment.findFirst({
+            where: {
+              studentNumber: enrollmentId,
+              course: { code: enrollment.course.prefix },
+            },
+          });
+          console.log(remoteEnrollment);
+          if (remoteEnrollment) {
+            if (remoteEnrollment.onHold && remoteEnrollment.holdReason !== 'failed unit') {
+              await this.remotePrisma.enrollment.update({
+                data: { onHold: false, holdReason: null },
+                where: { enrollmentId: remoteEnrollment.enrollmentId },
+              });
+            }
+          }
+        } catch (err) {
+          this.logger.error('Could not update remote database', err);
+        }
+      }
 
       const transactionDateTime = new Date(insertedTransaction.transactionDate);
       if (insertedTransaction.transactionTime) {

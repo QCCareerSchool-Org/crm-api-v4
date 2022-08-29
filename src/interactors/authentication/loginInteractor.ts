@@ -1,7 +1,6 @@
-import type { PrismaClient } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/index.js';
-
 import type { AccessTokenPayload } from '../../domain/accessTokenPayload.js';
+import { Decimal } from '../../frameworks/prisma/index.js';
+import type { PrismaClient } from '../../frameworks/prisma/index.js';
 import type { IConfigService } from '../../services/config/index.js';
 import type { ICryptoService } from '../../services/crypto/index.js';
 import type { IDateService } from '../../services/date/index.js';

@@ -1,12 +1,11 @@
-import type { PrismaClient } from '@prisma/client';
 import type { CountryDTO } from '../../domain/countryDTO.js';
-
 import type { CourseDTO } from '../../domain/courseDTO.js';
 import type { CurrencyDTO } from '../../domain/currencyDTO.js';
 import type { EnrollmentDTO } from '../../domain/enrollmentDTO.js';
 import type { ProvinceDTO } from '../../domain/provinceDTO.js';
 import type { StudentDTO } from '../../domain/studentDTO.js';
 import type { TransactionDTO } from '../../domain/transactionDTO.js';
+import type { PrismaClient } from '../../frameworks/prisma/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';
 import type { ResultType } from '../result.js';

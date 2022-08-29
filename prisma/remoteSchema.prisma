@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client2"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("REMOTE_DATABASE_URL")
+}
+
+model Course {
+  courseId               Int                     @id @default(autoincrement()) @db.UnsignedInt @map("id")
+  schoolId               Int                     @db.UnsignedInt @map("school_id")
+  code                   String                  @db.Char(2)
+  version                Int                     @default(0) @db.UnsignedSmallInt
+  studentTypeId          String                  @db.VarChar(50) @map("student_type")
+  name                   String                  @db.VarChar(50)
+  courseGuide            Boolean                 @default(true) @map("course_guide")
+  quizzesEnabled         Boolean                 @default(false) @map("quizzes_enabled")
+  noTutor                Boolean                 @default(false) @map("no_tutor")
+  submissionType         Int                     @db.UnsignedTinyInt @default(0) @map("unit_type")
+  enabled                Boolean                 @default(true)
+  order                  Int                     @default(0) @db.TinyInt
+  submissionsEnabled     Boolean                 @default(false) @map("new_units_enabled")
+  entityVersion          Int                     @default(0) @map("entity_version")
+  enrollments            Enrollment[]
+
+  @@map("courses")
+  @@unique([courseId, entityVersion], map: "id_entity_version")
+  @@index([code], map: "code")
+  @@index([schoolId], map: "school_id")
+  @@index([studentTypeId], map: "student_type")
+}
+
+model Enrollment {
+  enrollmentId         Int                 @id @default(autoincrement()) @db.UnsignedInt @map("id")
+  courseId             Int                 @db.UnsignedInt @map("course_id")
+  studentNumber        Int                 @default(0) @map("student number")
+  studentId            Int                 @default(0) @map("account_id")
+  tutorId              Int?                @map("tutor_id")
+  maxAssignments       Int?                @map("max_assignments")
+  graduated            Boolean             @default(false)
+  assignmentsDisabled  Boolean             @default(false) @map("assignments_disabled")
+  quizzesDisabled      Boolean             @default(false) @map("quizzes_disabled")
+  onHold               Boolean             @default(false) @map("on_hold")
+  holdReason           String?             @db.VarChar(50) @map("hold_reason")
+  currencyCode         String              @db.Char(3) @map("currency_code")
+  courseCost           Decimal             @default(0.00) @db.Decimal(10, 2) @map("course_cost")
+  amountPaid           Decimal             @default(0.00) @db.Decimal(10, 2) @map("amount_paid")
+  monthlyInstallment   Decimal?            @db.Decimal(8, 2) @map("monthly_installment")
+  enrollmentDate       DateTime?           @db.Timestamp @map("enrollment_date")
+  fastTrack            Boolean             @default(false) @map("fast_track")
+  paymentsDisabled     Boolean             @default(false) @map("payments_disabled")
+  updated              DateTime?           @db.Timestamp(0)
+  entityVersion        Int                 @default(0) @map("entity_version")
+  timestamp            DateTime            @default(now()) @db.Timestamp(6)
+  course               Course              @relation(fields: [courseId], references: [courseId], map: "students_ibfk_3")
+
+  @@map("students")
+  @@unique([studentId, courseId], map: "account_id_course_id")
+  @@unique([courseId, studentNumber], map: "course_id_student_number")
+  @@unique([enrollmentId, entityVersion], map: "id_entity_version")
+  @@index([studentId], map: "account_id")
+  @@index([currencyCode], map: "currency_code")
+  @@index([tutorId], map: "tutor_id")
+}
+

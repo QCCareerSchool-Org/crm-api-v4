@@ -2,7 +2,6 @@ import { Paysafe } from '@qccareerschool/paysafe';
 import { Authorization } from '@qccareerschool/paysafe/dist/card-payments/authorization';
 import { BillingDetails } from '@qccareerschool/paysafe/dist/card-payments/lib/billing-details';
 import { Card } from '@qccareerschool/paysafe/dist/card-payments/lib/card';
-import { Settlement } from '@qccareerschool/paysafe/dist/card-payments/settlement';
 import { Verification } from '@qccareerschool/paysafe/dist/card-payments/verification';
 import { CardExpiry } from '@qccareerschool/paysafe/dist/common/card-expiry';
 import { Address } from '@qccareerschool/paysafe/dist/customer-vault/address';

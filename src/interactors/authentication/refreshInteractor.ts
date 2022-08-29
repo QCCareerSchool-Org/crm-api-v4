@@ -1,6 +1,5 @@
-import type { PrismaClient } from '@prisma/client';
-
 import type { AccessTokenPayload } from '../../domain/accessTokenPayload.js';
+import type { PrismaClient } from '../../frameworks/prisma/index.js';
 import type { IInteractor, InteractorCookie, InteractorCookieOptions } from '../../interactors/index.js';
 import type { ResultType } from '../../interactors/result.js';
 import { Result } from '../../interactors/result.js';

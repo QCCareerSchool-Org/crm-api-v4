@@ -110,9 +110,7 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
 
       const paysafe = this.paysafeServiceFactory.createInstance(paymentMethod.paysafeCompany, paymentMethod.enrollment.currency.code);
 
-      const studentNumber = `${enrollment.course.prefix}${enrollment.enrollmentId}`;
-
-      const paysafeResult = await paysafe.charge(studentNumber, amount, paymentMethod.paysafePaymentToken);
+      const paysafeResult = await paysafe.charge(amount, paymentMethod.paysafePaymentToken);
 
       const minimumPaymentMade = paysafeResult.amount >= Math.min(enrollment.installment.toNumber(), amountRemaining);
 
@@ -144,6 +142,7 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
             referenceNumber: paysafeResult.settlementId,
             settlementId: paysafeResult.settlementId,
             response: paysafeResult.response,
+            description: 'student-initiated',
           },
           include: { enrollment: true, paymentMethod: true },
         });

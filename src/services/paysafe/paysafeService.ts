@@ -247,9 +247,7 @@ export class PaysafeService implements IPaysafeService {
       now.getMinutes().toString().padStart(2, '0') +
       now.getSeconds().toString().padStart(2, '0') +
       now.getMilliseconds().toString().padStart(3, '0');
-    const max = 99999;
-    const min = 10000;
-    const random = Math.floor(Math.random() * (max - min)) + min;
+    const random = Math.random().toString(32).slice(2);
     return `${date}_si_${random}`;
   }
 
@@ -265,8 +263,8 @@ export class PaysafeService implements IPaysafeService {
     return studentNumber + '_' + dateString;
   }
 
-  public async charge(studentNumber: string, amount: number, paymentToken: string): Promise<PaysafeChargeResult> {
-    const orderId = this.createCustomerId(studentNumber);
+  public async charge(amount: number, paymentToken: string): Promise<PaysafeChargeResult> {
+    const orderId = this.createOrderId();
 
     const c = new Card();
     c.setPaymentToken(paymentToken);

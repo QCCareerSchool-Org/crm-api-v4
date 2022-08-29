@@ -24,5 +24,3 @@ export type { RemoteCourse, RemoteEnrollment };
 
 export const prisma = new PrismaClient();
 export const remotePrisma = new RemotePrismaClient();
-
-void remotePrisma.enrollment.findFirst().then(console.log);

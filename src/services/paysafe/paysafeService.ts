@@ -247,8 +247,7 @@ export class PaysafeService implements IPaysafeService {
       now.getMinutes().toString().padStart(2, '0') +
       now.getSeconds().toString().padStart(2, '0') +
       now.getMilliseconds().toString().padStart(3, '0');
-    const random = Math.random().toString(32).slice(2);
-    return `${date}_si_${random}`;
+    return `${date}_si_${this.randomString()}`;
   }
 
   public createCustomerId(studentNumber: string): string {
@@ -303,5 +302,9 @@ export class PaysafeService implements IPaysafeService {
       response: error?.getMessage() ?? null,
       settlementId,
     };
+  }
+
+  private randomString(): string {
+    return Math.random().toString(32).slice(2);
   }
 }

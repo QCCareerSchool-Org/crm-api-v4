@@ -143,6 +143,7 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
             settlementId: paysafeResult.settlementId,
             response: paysafeResult.response,
             description: 'student-initiated',
+            notified: false,
           },
           include: { enrollment: true, paymentMethod: true },
         });

@@ -221,7 +221,7 @@ export class PaysafeService implements IPaysafeService {
     if ([ 'CA', 'US', 'AU' ].includes(countryCode) && provinceCode) {
       b.setState(provinceCode);
     }
-    b.setZip(postalCode ?? 'NA');
+    b.setZip(postalCode?.length ? postalCode : 'NA');
     b.setCountry(countryCode);
 
     const v = new Verification();

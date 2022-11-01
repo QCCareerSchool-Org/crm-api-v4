@@ -110,6 +110,8 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
 
       const paysafe = this.paysafeServiceFactory.createInstance(paymentMethod.paysafeCompany, paymentMethod.enrollment.currency.code);
 
+      this.logger.info('Charging credit card', { studentId, enrollmentId, paymentMethodId, amount });
+
       const paysafeResult = await paysafe.charge(amount, paymentMethod.paysafePaymentToken);
 
       const minimumPaymentMade = paysafeResult.amount >= Math.min(enrollment.installment.toNumber(), amountRemaining);

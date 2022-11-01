@@ -71,6 +71,8 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
 
       const studentNumber = `${enrollment.course.prefix}${enrollment.enrollmentId}`;
 
+      this.logger.info('Creating credit card', { studentId, enrollmentIds, company });
+
       const paysafeResult = await paysafe.create(
         studentNumber,
         enrollment.student.firstName,

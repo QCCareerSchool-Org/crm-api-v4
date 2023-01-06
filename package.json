@@ -26,8 +26,8 @@
   },
   "dependencies": {
     "@faker-js/faker": "^7.3.0",
-    "@prisma/client": "^4.2.1",
-    "@qccareerschool/paysafe": "^0.0.13",
+    "@prisma/client": "^4.8.1",
+    "@qccareerschool/paysafe": "^0.1.2",
     "@qccareerschool/winston-nodemailer": "^4.0.4",
     "@types/bcrypt": "^5.0.0",
     "@types/big.js": "^6.1.5",

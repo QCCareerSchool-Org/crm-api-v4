@@ -27,7 +27,7 @@ export interface IPaysafeService {
     singleUseToken: string,
   ) => Promise<PaysafeCreateProfileResult>;
 
-  charge: (amount: number, paymentToken: string) => Promise<PaysafeChargeResult>;
+  charge: (amount: number, paymentToken: string, initialTransaction: boolean, initialTransactionId: string | null) => Promise<PaysafeChargeResult>;
 }
 
 export const paysafeServiceFactory = new PaysafeServiceFactory(environmentConfigService, winstonLoggerService);

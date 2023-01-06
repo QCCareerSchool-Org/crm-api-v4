@@ -2,6 +2,7 @@ import { Paysafe } from '@qccareerschool/paysafe';
 import { Authorization } from '@qccareerschool/paysafe/dist/card-payments/authorization';
 import { BillingDetails } from '@qccareerschool/paysafe/dist/card-payments/lib/billing-details';
 import { Card } from '@qccareerschool/paysafe/dist/card-payments/lib/card';
+import { StoredCredential, StoredCredentialOccurrence, StoredCredentialType } from '@qccareerschool/paysafe/dist/card-payments/lib/stored-credential';
 import { Verification } from '@qccareerschool/paysafe/dist/card-payments/verification';
 import { CardExpiry } from '@qccareerschool/paysafe/dist/common/card-expiry';
 import { Address } from '@qccareerschool/paysafe/dist/customer-vault/address';
@@ -22,6 +23,7 @@ export class PaysafeService implements IPaysafeService {
 
   public constructor(
     private readonly company: PaysafeCompany,
+    private readonly currencyCode: string,
     apiKey: string,
     apiPassword: string,
     environment: 'LIVE' | 'TEST',
@@ -262,7 +264,7 @@ export class PaysafeService implements IPaysafeService {
     return studentNumber + '_' + dateString;
   }
 
-  public async charge(amount: number, paymentToken: string): Promise<PaysafeChargeResult> {
+  public async charge(amount: number, paymentToken: string, initialTransaction: boolean, initialTransactionId: string | null): Promise<PaysafeChargeResult> {
     const orderId = this.createOrderId();
 
     const c = new Card();
@@ -273,7 +275,26 @@ export class PaysafeService implements IPaysafeService {
     a.setAmount(Math.floor(amount * 100));
     a.setSettleWithAuth(true);
     a.setMerchantRefNum(orderId);
-    a.setRecurring('RECURRING');
+    if (this.company === 'GB' && this.currencyCode === 'GBP') {
+      if (initialTransaction) {
+        const storedCredential = new StoredCredential();
+        storedCredential.setType(StoredCredentialType.RECURRING);
+        storedCredential.setOccurence(StoredCredentialOccurrence.INITIAL);
+        a.setStoredCredential(storedCredential);
+      } else {
+        if (initialTransactionId === null) { // default to the old way
+          a.setRecurring('RECURRING');
+        } else {
+          const storedCredential = new StoredCredential();
+          storedCredential.setType(StoredCredentialType.RECURRING);
+          storedCredential.setOccurence(StoredCredentialOccurrence.SUBSEQUENT);
+          storedCredential.setExternalInitialTransactionId(initialTransactionId);
+          a.setStoredCredential(storedCredential);
+        }
+      }
+    } else {
+      a.setRecurring(initialTransaction ? 'INITIAL' : 'RECURRING');
+    }
 
     const authorization = await this.paysafe.getCardServiceHandler().authorize(a);
     this.logger.info('authorization', authorization);
@@ -294,6 +315,7 @@ export class PaysafeService implements IPaysafeService {
     }
 
     return {
+      transactionId: authorization.getId() ?? null,
       date: transactionDateTime,
       amount: authorization.getStatus() === 'COMPLETED' ? amount : 0,
       orderId,

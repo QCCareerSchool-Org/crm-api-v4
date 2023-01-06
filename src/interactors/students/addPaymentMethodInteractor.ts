@@ -1,4 +1,5 @@
 import type { PrismaClient } from '../../frameworks/prisma/index.js';
+import type { IDateService } from '../../services/date/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IPaysafeServiceFactory } from '../../services/paysafe/index.js';
 import type { IInteractor } from '../index.js';
@@ -26,6 +27,7 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
   public constructor(
     private readonly prisma: PrismaClient,
     private readonly paysafeServiceFactory: IPaysafeServiceFactory,
+    private readonly dateService: IDateService,
     private readonly logger: ILoggerService
   ) { /* empty */ }
 
@@ -94,6 +96,7 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
           data: { primary: false },
           where: { OR: enrollments.map((e => ({ enrollmentId: e.enrollmentId }))) },
         });
+        const created = this.dateService.getLocalDate() + 'Z';
         return transaction.paymentMethod.createMany({
           data: enrollments.map(e => ({
             enrollmentId: e.enrollmentId,
@@ -106,6 +109,8 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
             pan: paysafeResult.maskedPan,
             expiryMonth: paysafeResult.expiryMonth,
             expiryYear: paysafeResult.expiryYear,
+            created,
+            modified: created,
           })),
         });
       });

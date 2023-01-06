@@ -2,7 +2,6 @@
 generator client {
   provider = "prisma-client-js"
   output   = "./generated/client1"
-  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
@@ -242,26 +241,27 @@ model PaymentType {
 }
 
 model PaymentMethod {
-  paymentMethodId     Int             @id @db.UnsignedInt @default(autoincrement()) @map("id")
-  enrollmentId        Int?            @db.UnsignedInt @map("enrollment_id")
-  paymentTypeId       Int             @db.UnsignedInt @map("payment_type_id")
-  primary             Boolean
-  paysafeProfileId    String?         @db.Char(36) @map("paysafe_profile_id")
-  paysafeCardId       String?         @db.Char(36) @map("paysafe_card_id")
-  paysafePaymentToken String?         @db.Char(36) @map("paysafe_payment_token")
-  paysafeCompany      PaysafeCompany? @map("paysafe_company")
-  pan                 String?         @db.VarChar(20)
-  expiryMonth         Int?            @db.UnsignedTinyInt @map("expiry_month")
-  expiryYear          Int?            @db.UnsignedTinyInt @map("expiry_year")
-  deleted             Boolean         @default(false)
-  notified            Boolean         @default(true)
-  disabled            Boolean         @default(false)
-  transactionCount    Int             @db.UnsignedInt @default(0) @map("transaction_count")
-  created             DateTime        @default(now()) @db.Timestamp(0)
-  modified            DateTime?       @db.Timestamp(0) @updatedAt
-  enrollment          Enrollment?     @relation(fields: [enrollmentId], references: [enrollmentId], map: "payment_methods_ibfk_1")
-  paymentType         PaymentType     @relation(fields: [paymentTypeId], references: [paymentTypeId], map: "payment_methods_ibfk_2")
-  transactions        Transaction[]
+  paymentMethodId      Int             @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  enrollmentId         Int?            @db.UnsignedInt @map("enrollment_id")
+  paymentTypeId        Int             @db.UnsignedInt @map("payment_type_id")
+  primary              Boolean
+  paysafeProfileId     String?         @db.Char(36) @map("paysafe_profile_id")
+  paysafeCardId        String?         @db.Char(36) @map("paysafe_card_id")
+  paysafePaymentToken  String?         @db.Char(36) @map("paysafe_payment_token")
+  paysafeCompany       PaysafeCompany? @map("paysafe_company")
+  initialTransactionId String?         @db.Char(36) @map("initial_transaction_id")
+  pan                  String?         @db.VarChar(20)
+  expiryMonth          Int?            @db.UnsignedTinyInt @map("expiry_month")
+  expiryYear           Int?            @db.UnsignedTinyInt @map("expiry_year")
+  deleted              Boolean         @default(false)
+  notified             Boolean         @default(true)
+  disabled             Boolean         @default(false)
+  transactionCount     Int             @db.UnsignedInt @default(0) @map("transaction_count")
+  created              DateTime        @default(now()) @db.Timestamp(0)
+  modified             DateTime?       @db.Timestamp(0) @updatedAt
+  enrollment           Enrollment?     @relation(fields: [enrollmentId], references: [enrollmentId], map: "payment_methods_ibfk_1")
+  paymentType          PaymentType     @relation(fields: [paymentTypeId], references: [paymentTypeId], map: "payment_methods_ibfk_2")
+  transactions         Transaction[]
 
   @@map("payment_methods")
 }

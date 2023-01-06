@@ -5,7 +5,9 @@ import { DateService } from './dateService.js';
  */
 export interface IDateService {
   getDate: () => Date;
-  formatDateTime: (date: Date) => string;
+  getLocalDate: () => string;
+  formatDateTime: (d: Date) => string;
+  formatLocalDate: (d: Date) => string;
 }
 
 export const dateService = new DateService();

@@ -2,6 +2,7 @@ import type { EnrollmentDTO } from '../../domain/enrollmentDTO.js';
 import type { PaymentMethodDTO } from '../../domain/paymentMethodDTO.js';
 import type { TransactionDTO } from '../../domain/transactionDTO.js';
 import type { PrismaClient, RemotePrismaClient } from '../../frameworks/prisma/index.js';
+import type { IDateService } from '../../services/date/index.js';
 import type { IDecimalService } from '../../services/decimal/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IPaysafeServiceFactory } from '../../services/paysafe/index.js';
@@ -43,6 +44,7 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
     private readonly remotePrisma: RemotePrismaClient,
     private readonly decimalService: IDecimalService,
     private readonly paysafeServiceFactory: IPaysafeServiceFactory,
+    private readonly dateService: IDateService,
     private readonly logger: ILoggerService
   ) { /* empty */ }
 
@@ -112,7 +114,8 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
 
       this.logger.info('Charging credit card', { studentId, enrollmentId, paymentMethodId, amount });
 
-      const paysafeResult = await paysafe.charge(amount, paymentMethod.paysafePaymentToken);
+      const initialTransaction = paymentMethod.transactionCount === 0;
+      const paysafeResult = await paysafe.charge(amount, paymentMethod.paysafePaymentToken, initialTransaction, paymentMethod.initialTransactionId);
 
       const minimumPaymentMade = paysafeResult.amount >= Math.min(enrollment.installment.toNumber(), amountRemaining);
 
@@ -124,28 +127,41 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
             where: { enrollmentId },
           });
         }
-        // update the payment method transaction count
-        await transaction.paymentMethod.update({
-          data: { transactionCount: { increment: 1 } },
-          where: { paymentMethodId },
-        });
+        // update the payment method transaction count and possibly initial transaction ID
+        if (initialTransaction) {
+          await transaction.paymentMethod.update({
+            data: {
+              transactionCount: { increment: 1 },
+              initialTransactionId: paysafeResult.transactionId,
+            },
+            where: { paymentMethodId },
+          });
+        } else {
+          await transaction.paymentMethod.update({
+            data: { transactionCount: { increment: 1 } },
+            where: { paymentMethodId },
+          });
+        }
         // insert a transaction
+        const created = this.dateService.getLocalDate() + 'Z';
         return transaction.transaction.create({
           data: {
             enrollmentId,
             paymentMethodId,
-            transactionDate: paysafeResult.date, // paysafeResult.date.toString().substring(0, 10),
-            transactionTime: paysafeResult.date, // paysafeResult.date.toTimeString().substring(0, 8),
+            transactionDate: this.dateService.formatLocalDate(paysafeResult.date) + 'Z', // paysafeResult.date.toString().substring(0, 10),
+            transactionTime: this.dateService.formatLocalDate(paysafeResult.date) + 'Z', // paysafeResult.date.toTimeString().substring(0, 8),
             amount: paysafeResult.amount,
             attemptedAmount: amount,
             orderId: paysafeResult.orderId,
             responseCode: paysafeResult.responseCode,
             authCode: paysafeResult.authCode,
-            referenceNumber: paysafeResult.settlementId,
+            referenceNumber: paysafeResult.transactionId,
             settlementId: paysafeResult.settlementId,
             response: paysafeResult.response,
             description: 'student-initiated',
             notified: false,
+            created,
+            modified: created,
           },
           include: { enrollment: true, paymentMethod: true },
         });

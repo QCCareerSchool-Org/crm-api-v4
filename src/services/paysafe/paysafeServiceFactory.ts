@@ -31,6 +31,7 @@ export class PaysafeServiceFactory implements IPaysafeServiceFactory {
     }
     return new PaysafeService(
       company,
+      currencyCode,
       paysafeConfig.apiKey,
       paysafeConfig.apiPassword,
       this.configService.config.environment === 'production' ? 'LIVE' : 'TEST',

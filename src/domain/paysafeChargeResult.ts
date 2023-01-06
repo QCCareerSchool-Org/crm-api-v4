@@ -1,4 +1,5 @@
 export type PaysafeChargeResult = {
+  transactionId: string | null;
   date: Date;
   amount: number;
   orderId: string;

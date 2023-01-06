@@ -1,4 +1,5 @@
 import { prisma, remotePrisma } from '../../frameworks/prisma/index.js';
+import { dateService } from '../../services/date/index.js';
 import { bigJsDecimalService } from '../../services/decimal/index.js';
 import { emailValidatorService } from '../../services/emailValidator/index.js';
 import { winstonLoggerService } from '../../services/logger/index.js';
@@ -11,8 +12,8 @@ import { UpdateBillingAddressInteractor } from './updateBillingAddressInteractor
 import { UpdateEmailAddressInteractor } from './updateEmailAddressInteractor.js';
 import { UpdateTelephoneNumberInteractor } from './updateTelephoneNumberInteractor.js';
 
-export const addPaymentMethodInteractor = new AddPaymentMethodInteractor(prisma, paysafeServiceFactory, winstonLoggerService);
-export const chargePaymentMethodInteractor = new ChargePaymentMethodInteractor(prisma, remotePrisma, bigJsDecimalService, paysafeServiceFactory, winstonLoggerService);
+export const addPaymentMethodInteractor = new AddPaymentMethodInteractor(prisma, paysafeServiceFactory, dateService, winstonLoggerService);
+export const chargePaymentMethodInteractor = new ChargePaymentMethodInteractor(prisma, remotePrisma, bigJsDecimalService, paysafeServiceFactory, dateService, winstonLoggerService);
 export const getStudentInteractor = new GetStudentInteractor(prisma, winstonLoggerService);
 export const getEnrollmentInteractor = new GetEnrollmentInteractor(prisma, winstonLoggerService);
 export const updateTelephoneNumberInteractor = new UpdateTelephoneNumberInteractor(prisma, winstonLoggerService);

@@ -288,7 +288,7 @@ export class PaysafeService implements IPaysafeService {
           const storedCredential = new StoredCredential();
           storedCredential.setType(StoredCredentialType.RECURRING);
           storedCredential.setOccurence(StoredCredentialOccurrence.SUBSEQUENT);
-          storedCredential.setExternalInitialTransactionId(initialTransactionId);
+          storedCredential.setInitialTransactionId(initialTransactionId);
           a.setStoredCredential(storedCredential);
         }
       }

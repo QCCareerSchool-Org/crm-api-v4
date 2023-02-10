@@ -1,3 +1,5 @@
+import { EnvironmentConfigService } from './environmentConfigService.js';
+
 export type Environment = 'development' | 'production';
 
 export type Config = {
@@ -6,6 +8,8 @@ export type Config = {
   // host: string;
   auth: {
     cookieDomain: string;
+    cookiePath: string;
+    xsrfCookieName: string;
     /** how long before access tokens should expire, in seconds */
     accessTokenLifetime: number;
     /** how long before refresh tokens should expire, in seconds */
@@ -30,3 +34,5 @@ export type Config = {
 export interface IConfigService {
   config: Config;
 }
+
+export const environmentConfigService = new EnvironmentConfigService();

@@ -1,7 +1,6 @@
-import type { PrismaClient } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/index.js';
-
 import type { AccessTokenPayload } from '../../domain/accessTokenPayload.js';
+import { Decimal } from '../../frameworks/prisma/index.js';
+import type { PrismaClient } from '../../frameworks/prisma/index.js';
 import type { IConfigService } from '../../services/config/index.js';
 import type { ICryptoService } from '../../services/crypto/index.js';
 import type { IDateService } from '../../services/date/index.js';
@@ -14,7 +13,7 @@ import type { ResultType } from '../result.js';
 import { Result } from '../result.js';
 
 type LoginRequestDTO = {
-  username: string;
+  studentId: number;
   password: string;
   stayLoggedIn?: boolean;
   ipAddress: string | null;
@@ -52,10 +51,9 @@ export class LoginInteractor implements IInteractor<LoginRequestDTO, LoginRespon
 
   public async execute(request: LoginRequestDTO): Promise<ResultType<LoginResponseDTO>> {
     try {
-      const studentId = parseInt(request.username, 10);
 
       const student = await this.prisma.student.findFirst({
-        where: { studentId },
+        where: { studentId: request.studentId },
       });
       if (!student) {
         return Result.fail(new LoginUsernameNotFound());
@@ -79,9 +77,10 @@ export class LoginInteractor implements IInteractor<LoginRequestDTO, LoginRespon
 
       // create a jwt access token
       const accessTokenPayload: AccessTokenPayload = {
-        sub: student.studentId,
-        iss: 'https://crm.qccareerschool.com',
-        userType: 'student',
+        crm: {
+          id: student.studentId,
+          type: 'student',
+        },
         exp: accessExp,
         xsrf: xsrfTokenString, // store the XSRF token in the payload
       };
@@ -120,13 +119,13 @@ export class LoginInteractor implements IInteractor<LoginRequestDTO, LoginRespon
 
       const accessCookieOptions: InteractorCookieOptions = {
         ...baseCookieOptions,
-        path: '/v4',
+        path: this.configService.config.auth.cookiePath,
         maxAge: this.configService.config.auth.accessTokenLifetime * 1000,
       };
 
       const refreshCookieOptions: InteractorCookieOptions = {
         ...baseCookieOptions,
-        path: '/v4/auth/refresh',
+        path: this.configService.config.auth.cookiePath + '/auth/refresh',
       };
 
       if (request.stayLoggedIn) {
@@ -137,7 +136,7 @@ export class LoginInteractor implements IInteractor<LoginRequestDTO, LoginRespon
         accessTokenPayload,
         cookies: [
           { name: 'accessToken', value: accessToken, options: accessCookieOptions },
-          { name: 'XSRF-TOKEN', value: xsrfTokenString, options: { ...accessCookieOptions, path: '/', httpOnly: false } }, // path '/' and httpOnly false for Angular CSRF
+          { name: this.configService.config.auth.xsrfCookieName, value: xsrfTokenString, options: { ...accessCookieOptions, path: '/', httpOnly: false } }, // path '/' and httpOnly false for Angular CSRF
           { name: 'refreshToken', value: refreshTokenString, options: refreshCookieOptions },
         ],
       });

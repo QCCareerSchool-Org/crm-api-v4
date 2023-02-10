@@ -1,5 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
-
+import type { PrismaClient } from '../../frameworks/prisma/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';
 import type { ResultType } from '../result.js';

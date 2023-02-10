@@ -1,6 +1,10 @@
 import { Paysafe } from '@qccareerschool/paysafe';
+import { Authorization } from '@qccareerschool/paysafe/dist/card-payments/authorization';
+import { BillingDetails } from '@qccareerschool/paysafe/dist/card-payments/lib/billing-details';
 import { Card } from '@qccareerschool/paysafe/dist/card-payments/lib/card';
+import { StoredCredential, StoredCredentialOccurrence, StoredCredentialType } from '@qccareerschool/paysafe/dist/card-payments/lib/stored-credential';
 import { Verification } from '@qccareerschool/paysafe/dist/card-payments/verification';
+import { CardExpiry } from '@qccareerschool/paysafe/dist/common/card-expiry';
 import { Address } from '@qccareerschool/paysafe/dist/customer-vault/address';
 import { Card as ProfileCard } from '@qccareerschool/paysafe/dist/customer-vault/card';
 import { Profile } from '@qccareerschool/paysafe/dist/customer-vault/profile';
@@ -8,20 +12,23 @@ import { Profile } from '@qccareerschool/paysafe/dist/customer-vault/profile';
 import type { PaysafeCompany } from '../../domain/paymentMethodDTO';
 import type { PaysafeAddress } from '../../domain/paysafeAddress';
 import type { PaysafeCard } from '../../domain/paysafeCard';
+import type { PaysafeChargeResult } from '../../domain/paysafeChargeResult';
+import type { PaysafeCreateProfileResult } from '../../domain/paysafeCreateProfileResult';
 import type { PaysafeProfile } from '../../domain/paysafeProfile';
-import type { PaysafeResult } from '../../domain/paysafeResult';
+import type { ILoggerService } from '../logger';
 import type { IPaysafeService } from '.';
 
 export class PaysafeService implements IPaysafeService {
-
   private readonly paysafe: Paysafe;
 
   public constructor(
     private readonly company: PaysafeCompany,
+    private readonly currencyCode: string,
     apiKey: string,
     apiPassword: string,
     environment: 'LIVE' | 'TEST',
     accountNumber: string,
+    private readonly logger: ILoggerService,
   ) {
     this.paysafe = new Paysafe(apiKey, apiPassword, environment, accountNumber);
   }
@@ -39,13 +46,13 @@ export class PaysafeService implements IPaysafeService {
     provinceCode: string | null,
     postalCode: string | null,
     countryCode: string,
-    token: string,
-  ): Promise<PaysafeResult> {
+    singleUseToken: string,
+  ): Promise<PaysafeCreateProfileResult> {
+    await this.verifyCard(address1, address2, city, provinceCode, postalCode, countryCode, singleUseToken);
     const profile = await this.createProfile(studentNumber, firstName, lastName, sex, emailAddress, telephoneNumber);
     const address = await this.createAddress(profile.profileId, address1, address2, city, provinceCode, postalCode, countryCode);
-    const card = await this.createCard(profile.profileId, token);
-    await this.updateCardBillingAddress(profile.profileId, address.addressId, card.cardId);
-    await this.verifyCard(token);
+    const card = await this.createCard(profile.profileId, singleUseToken);
+    await this.updateCardBillingAddress(profile.profileId, address.addressId, card.cardId, card.expiryMonth, card.expiryYear);
 
     return {
       profileId: profile.profileId,
@@ -77,8 +84,10 @@ export class PaysafeService implements IPaysafeService {
       p.setPhone(telephoneNumber);
     }
     const profile = await this.paysafe.getCustomerServiceHandler().createProfile(p);
+    this.logger.info('profile', profile);
     const error = profile.getError();
     if (error) {
+      this.logger.error('profile error', error);
       throw error;
     }
     const profileId = profile.getId();
@@ -112,8 +121,10 @@ export class PaysafeService implements IPaysafeService {
     a.setCountry(countryCode);
     a.setDefaultShippingAddressIndicator(true);
     const address = await this.paysafe.getCustomerServiceHandler().createAddress(profileId, a);
+    this.logger.info('address', address);
     const error = address.getError();
     if (error) {
+      this.logger.error('address error', error);
       throw error;
     }
     const addressId = address.getId();
@@ -127,17 +138,15 @@ export class PaysafeService implements IPaysafeService {
 
   public async createCard(
     profileId: string,
-    token: string,
+    singleUseToken: string,
   ): Promise<PaysafeCard> {
-    // const e = new CardExpiry();
-    // e.setMonth(expiryMonth);
-    // e.setYear(expiryYear);
     const c = new ProfileCard();
-    c.setPaymentToken(token);
-    // c.setCardExpiry(e);
+    c.setSingleUseToken(singleUseToken);
     const card = await this.paysafe.getCustomerServiceHandler().createCard(profileId, c);
+    this.logger.info('card', card);
     const error = card.getError();
     if (error) {
+      this.logger.error('card error', error);
       throw error;
     }
     const cardId = card.getId();
@@ -177,26 +186,56 @@ export class PaysafeService implements IPaysafeService {
     };
   }
 
-  public async updateCardBillingAddress(profileId: string, addressId: string, cardId: string): Promise<void> {
+  public async updateCardBillingAddress(profileId: string, addressId: string, cardId: string, expiryMonth: number, expiryYear: number): Promise<void> {
+    const e = new CardExpiry();
+    e.setMonth(expiryMonth);
+    e.setYear(expiryYear);
     const c = new ProfileCard();
-    // cardUpdate.setCardExpiry(cardExpiryResult); // TODO: why are we doing this?
+    c.setCardExpiry(e);
     c.setBillingAddressId(addressId);
     const card = await this.paysafe.getCustomerServiceHandler().updateCard(profileId, cardId, c);
+    this.logger.info('update card', card);
     const error = card.getError();
     if (error) {
+      this.logger.error('update card error', error);
       throw error;
     }
   }
 
-  public async verifyCard(token: string): Promise<void> {
+  public async verifyCard(
+    address1: string,
+    address2: string,
+    city: string,
+    provinceCode: string | null,
+    postalCode: string | null,
+    countryCode: string,
+    singleUseToken: string
+  ): Promise<void> {
     const c = new Card();
-    c.setPaymentToken(token);
+    c.setPaymentToken(singleUseToken);
+
+    const b = new BillingDetails();
+    b.setStreet(address1);
+    if (address2) {
+      b.setStreet2(address2);
+    }
+    b.setCity(city);
+    if ([ 'CA', 'US', 'AU' ].includes(countryCode) && provinceCode) {
+      b.setState(provinceCode);
+    }
+    b.setZip(postalCode?.length ? postalCode : 'NA');
+    b.setCountry(countryCode);
+
     const v = new Verification();
     v.setMerchantRefNum(this.createOrderId());
     v.setCard(c);
+    v.setBillingDetails(b);
+
     const verification = await this.paysafe.getCardServiceHandler().verify(v);
+    this.logger.info('verification', verification);
     const error = verification.getError();
     if (error) {
+      this.logger.error('verification error', error);
       throw error;
     }
   }
@@ -210,10 +249,7 @@ export class PaysafeService implements IPaysafeService {
       now.getMinutes().toString().padStart(2, '0') +
       now.getSeconds().toString().padStart(2, '0') +
       now.getMilliseconds().toString().padStart(3, '0');
-    const max = 99999;
-    const min = 10000;
-    const random = Math.floor(Math.random() * (max - min)) + min;
-    return `${date}_si_${random}`;
+    return `${date}_si_${this.randomString()}`;
   }
 
   public createCustomerId(studentNumber: string): string {
@@ -226,5 +262,72 @@ export class PaysafeService implements IPaysafeService {
       now.getSeconds().toString() +
       now.getMilliseconds().toString();
     return studentNumber + '_' + dateString;
+  }
+
+  public async charge(amount: number, paymentToken: string, initialTransaction: boolean, initialTransactionId: string | null): Promise<PaysafeChargeResult> {
+    const orderId = this.createOrderId();
+
+    const c = new Card();
+    c.setPaymentToken(paymentToken);
+
+    const a = new Authorization();
+    a.setCard(c);
+    a.setAmount(Math.floor(amount * 100));
+    a.setSettleWithAuth(true);
+    a.setMerchantRefNum(orderId);
+    // if (this.company === 'GB' && this.currencyCode === 'GBP') {
+    //   if (initialTransaction) {
+    //     const storedCredential = new StoredCredential();
+    //     storedCredential.setType(StoredCredentialType.RECURRING);
+    //     storedCredential.setOccurence(StoredCredentialOccurrence.INITIAL);
+    //     a.setStoredCredential(storedCredential);
+    //   } else {
+    //     if (initialTransactionId === null) { // default to the old way
+    //       a.setRecurring('RECURRING');
+    //     } else {
+    //       const storedCredential = new StoredCredential();
+    //       storedCredential.setType(StoredCredentialType.RECURRING);
+    //       storedCredential.setOccurence(StoredCredentialOccurrence.SUBSEQUENT);
+    //       storedCredential.setInitialTransactionId(initialTransactionId);
+    //       a.setStoredCredential(storedCredential);
+    //     }
+    //   }
+    // } else {
+    //   a.setRecurring(initialTransaction ? 'INITIAL' : 'RECURRING');
+    // }
+    a.setRecurring(initialTransaction ? 'INITIAL' : 'RECURRING');
+
+    const authorization = await this.paysafe.getCardServiceHandler().authorize(a);
+    this.logger.info('authorization', authorization);
+    const error = authorization.getError();
+    if (error) {
+      this.logger.error('authorization error', error);
+    }
+
+    const transactionDateTime = authorization.getTxnTime() ?? new Date();
+
+    let settlementId: string | null = null;
+    const settlements = authorization.getSettlements();
+    if (settlements?.length) {
+      const id = settlements[0].getId();
+      if (typeof id !== 'undefined') {
+        settlementId = id;
+      }
+    }
+
+    return {
+      transactionId: authorization.getId() ?? null,
+      date: transactionDateTime,
+      amount: authorization.getStatus() === 'COMPLETED' ? amount : 0,
+      orderId,
+      responseCode: error?.getCode() ?? null,
+      authCode: authorization.getAuthCode() ?? null,
+      response: error?.getMessage() ?? null,
+      settlementId,
+    };
+  }
+
+  private randomString(): string {
+    return Math.random().toString(32).slice(2);
   }
 }

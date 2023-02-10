@@ -1,5 +1,11 @@
 import { prisma } from '../../frameworks/prisma/index.js';
-import { dateService, environmentConfigService, ipaddrJSIPAddressService, jwtService, nodeCryptoService, uuidService, winstonLoggerService } from '../../services/index.js';
+import { environmentConfigService } from '../../services/config/index.js';
+import { nodeCryptoService } from '../../services/crypto/index.js';
+import { dateService } from '../../services/date/index.js';
+import { ipaddrJSIPAddressService } from '../../services/ipaddress/index.js';
+import { jwtService } from '../../services/jwt/index.js';
+import { winstonLoggerService } from '../../services/logger/index.js';
+import { uuidService } from '../../services/uuid/index.js';
 import { CheckAuthenticationInteractor } from './checkAuthenticationInteractor.js';
 import { LoginInteractor } from './loginInteractor.js';
 import { LogoutInteractor } from './logoutInteractor.js';

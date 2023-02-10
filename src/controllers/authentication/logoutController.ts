@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 
 import { logoutInteractor } from '../../interactors/authentication/index.js';
-import { environmentConfigService } from '../../services/index.js';
+import { environmentConfigService } from '../../services/config/index.js';
 import { BaseController } from '../baseController.js';
 
 type Request = {

@@ -1,24 +1,42 @@
+import type { INodemailerOptions } from '@qccareerschool/winston-nodemailer';
+import { NodemailerTransport } from '@qccareerschool/winston-nodemailer';
 import { createLogger, format, transports } from 'winston';
+
+import { environmentConfigService } from '../../services/config/index.js';
 
 export const winston = createLogger({
   level: 'info',
   format: format.json(),
-  // defaultMeta: { service: 'user-service' },
   transports: [
-    //
-    // - Write all logs with level `error` and below to `error.log`
-    // - Write all logs with level `info` and below to `combined.log`
-    //
     new transports.File({ filename: 'error.log', level: 'error' }),
     new transports.File({ filename: 'combined.log' }),
   ],
 });
 
-//
-// If we're not in production then log to the `console` with the format:
-// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-//
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV === 'production') {
+  const { email } = environmentConfigService.config;
+
+  const options: INodemailerOptions = {
+    auth: {
+      pass: email.pass,
+      user: email.user,
+    },
+    from: 'winston@qccareerschool.com',
+    host: email.host,
+    port: email.port,
+    secure: email.mode === 'TLS',
+    tags: [ 'crm-api' ],
+    to: 'administrator@qccareerschool.com',
+    filter: (info: unknown) => {
+      if (typeof info === 'object' && info !== null && 'level' in info) {
+        const { level } = info as { level: unknown };
+        return typeof level === 'string' && [ 'error', 'crit', 'alert', 'emerg' ].includes(level);
+      }
+      return false;
+    },
+  };
+  winston.add(new NodemailerTransport(options));
+} else {
   winston.add(new transports.Console({
     format: format.simple(),
   }));

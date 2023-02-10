@@ -1,3 +1,5 @@
+import { NodeCryptoService } from './nodeCryptoService.js';
+
 export interface ICryptoService {
   /**
    * Returns a cryptographically secure series of bytes
@@ -25,3 +27,5 @@ export interface ICryptoService {
    */
   createHash: (password: string, rounds?: number) => Promise<string>;
 }
+
+export const nodeCryptoService = new NodeCryptoService();

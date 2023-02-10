@@ -1,6 +1,5 @@
-import type { PrismaClient } from '@prisma/client';
-
 import type { AccessTokenPayload } from '../../domain/accessTokenPayload.js';
+import type { PrismaClient } from '../../frameworks/prisma/index.js';
 import type { IInteractor, InteractorCookie, InteractorCookieOptions } from '../../interactors/index.js';
 import type { ResultType } from '../../interactors/result.js';
 import { Result } from '../../interactors/result.js';
@@ -62,9 +61,10 @@ export class RefreshInteractor implements IInteractor<RefreshRequestDTO, Refresh
 
       // create a new jwt access token
       const accessTokenPayload: AccessTokenPayload = {
-        sub: refreshToken.studentId,
-        iss: 'https://crm.qccareerschool.com',
-        userType: 'student',
+        crm: {
+          id: refreshToken.studentId,
+          type: 'student',
+        },
         exp: accessExp,
         xsrf: xsrfTokenString, // store the XSRF token in the payload
       };
@@ -79,7 +79,7 @@ export class RefreshInteractor implements IInteractor<RefreshRequestDTO, Refresh
 
       const accessCookieOptions: InteractorCookieOptions = {
         ...baseCookieOptions,
-        path: this.configService.config.environment !== 'development' ? '/api/v1' : '/v1', // strip proxy path prefix in development
+        path: this.configService.config.auth.cookiePath,
         maxAge: this.configService.config.auth.accessTokenLifetime * 1000,
       };
 
@@ -87,7 +87,7 @@ export class RefreshInteractor implements IInteractor<RefreshRequestDTO, Refresh
         accessTokenPayload,
         cookies: [
           { name: 'accessToken', value: accessToken, options: accessCookieOptions },
-          { name: 'XSRF-TOKEN', value: xsrfTokenString, options: { ...accessCookieOptions, path: '/', httpOnly: false } }, // path '/' and httpOnly false for Angular CSRF
+          { name: this.configService.config.auth.xsrfCookieName, value: xsrfTokenString, options: { ...accessCookieOptions, path: '/', httpOnly: false } }, // path '/' and httpOnly false for Angular CSRF
         ],
       });
 

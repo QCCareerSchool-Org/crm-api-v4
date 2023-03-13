@@ -13,8 +13,8 @@ export type StudentDTO = {
   postalCode: string | null;
   countryId: number;
   telephoneCountryCode: number;
-  telephoneNumber: string;
-  emailAddress: string;
+  telephoneNumber: string | null;
+  emailAddress: string | null;
   paymentStart: Date | null;
   paymentDay: number | null;
   // password is omitted

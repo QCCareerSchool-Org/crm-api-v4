@@ -80,7 +80,7 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
         enrollment.student.firstName,
         enrollment.student.lastName,
         enrollment.student.sex,
-        enrollment.student.emailAddress,
+        enrollment.student.emailAddress ?? '',
         enrollment.student.telephoneNumber,
         enrollment.student.address1,
         enrollment.student.address2,

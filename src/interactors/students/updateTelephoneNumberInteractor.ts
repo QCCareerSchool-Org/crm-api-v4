@@ -59,7 +59,7 @@ export class UpdateTelephoneNumberInteractor implements IInteractor<UpdateTeleph
           telephoneCountryCode,
           telephoneNumber,
           notes: {
-            create: { note: `Student updated telephone number from +${student.telephoneCountryCode} ${student.telephoneNumber} to +${telephoneCountryCode} ${telephoneNumber}` },
+            create: { note: `Student updated telephone number from +${student.telephoneCountryCode} ${student.telephoneNumber ?? '(null)'} to +${telephoneCountryCode} ${telephoneNumber}` },
           },
         },
       });

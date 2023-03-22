@@ -139,7 +139,7 @@ model Student {
   paymentStart         DateTime?      @db.Timestamp(0) @map("payment_start")
   paymentDay           Int?           @db.UnsignedTinyInt @map("payment_day")
   password             String?        @db.VarChar(255)
-  e164                 String         @db.VarChar(104) @map("E164")
+  e164                 String?        @db.VarChar(104) @map("E164")
   sms                  Boolean        @default(false)
   enrollmentCount      Int            @db.UnsignedInt @default(0) @map("enrollment_count")
   created              DateTime       @default(now()) @db.Timestamp(0)

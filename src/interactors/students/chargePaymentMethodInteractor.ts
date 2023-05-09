@@ -119,11 +119,13 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
 
       const minimumPaymentMade = paysafeResult.amount >= Math.min(enrollment.installment.toNumber(), amountRemaining);
 
+      const prismaNow = this.dateService.fixPrismaWriteDate(this.dateService.getDate());
+
       const insertedTransaction = await this.prisma.$transaction(async transaction => {
         if (enrollment.status === 'H' && minimumPaymentMade) {
           // take the enrollment off hold
           await transaction.enrollment.update({
-            data: { status: null, statusDate: null },
+            data: { status: null, statusDate: null, modified: prismaNow },
             where: { enrollmentId },
           });
         }
@@ -133,23 +135,23 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
             data: {
               transactionCount: { increment: 1 },
               initialTransactionId: paysafeResult.transactionId,
+              modified: prismaNow,
             },
             where: { paymentMethodId },
           });
         } else {
           await transaction.paymentMethod.update({
-            data: { transactionCount: { increment: 1 } },
+            data: { transactionCount: { increment: 1 }, modified: prismaNow },
             where: { paymentMethodId },
           });
         }
         // insert a transaction
-        const created = this.dateService.getLocalDate() + 'Z';
         return transaction.transaction.create({
           data: {
             enrollmentId,
             paymentMethodId,
-            transactionDate: this.dateService.formatLocalDate(paysafeResult.date) + 'Z', // paysafeResult.date.toString().substring(0, 10),
-            transactionTime: this.dateService.formatLocalDate(paysafeResult.date) + 'Z', // paysafeResult.date.toTimeString().substring(0, 8),
+            transactionDate: this.dateService.fixPrismaWriteDate(paysafeResult.date), // paysafeResult.date.toString().substring(0, 10),
+            transactionTime: this.dateService.fixPrismaWriteDate(paysafeResult.date), // paysafeResult.date.toTimeString().substring(0, 8),
             amount: paysafeResult.amount,
             attemptedAmount: amount,
             orderId: paysafeResult.orderId,
@@ -160,8 +162,8 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
             response: paysafeResult.response,
             description: 'student-initiated',
             notified: false,
-            created,
-            modified: created,
+            created: prismaNow,
+            modified: prismaNow,
           },
           include: { enrollment: true, paymentMethod: true },
         });
@@ -190,12 +192,14 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
         }
       }
 
-      const transactionDateTime = new Date(insertedTransaction.transactionDate);
+      const transactionDate = this.dateService.fixPrismaReadDate(insertedTransaction.transactionDate);
+      const transactionDateTime = new Date(transactionDate);
       if (insertedTransaction.transactionTime) {
-        transactionDateTime.setHours(insertedTransaction.transactionTime.getHours());
-        transactionDateTime.setMinutes(insertedTransaction.transactionTime.getMinutes());
-        transactionDateTime.setSeconds(insertedTransaction.transactionTime.getSeconds());
-        transactionDateTime.setMilliseconds(insertedTransaction.transactionTime.getMilliseconds());
+        const transactionTime = this.dateService.fixPrismaReadDate(insertedTransaction.transactionTime);
+        transactionDateTime.setHours(transactionTime.getHours());
+        transactionDateTime.setMinutes(transactionTime.getMinutes());
+        transactionDateTime.setSeconds(transactionTime.getSeconds());
+        transactionDateTime.setMilliseconds(transactionTime.getMilliseconds());
       }
 
       return Result.success({
@@ -219,7 +223,7 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
         response: insertedTransaction.response,
         description: insertedTransaction.description,
         posted: insertedTransaction.posted,
-        postedDate: insertedTransaction.postedDate,
+        postedDate: this.dateService.fixPrismaReadDate(insertedTransaction.postedDate),
         notified: insertedTransaction.notified,
         extraCharge: insertedTransaction.extraCharge,
         auto: insertedTransaction.auto,
@@ -228,8 +232,8 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
         voided: insertedTransaction.voided,
         notes: insertedTransaction.notes,
         severity: insertedTransaction.severity,
-        created: insertedTransaction.created,
-        modified: insertedTransaction.modified,
+        created: this.dateService.fixPrismaReadDate(insertedTransaction.created),
+        modified: this.dateService.fixPrismaReadDate(insertedTransaction.modified),
         paymentMethod: insertedTransaction.paymentMethod === null ? null : {
           paymentMethodId: insertedTransaction.paymentMethod.paymentMethodId,
           enrollmentId: insertedTransaction.paymentMethod.enrollmentId,
@@ -246,8 +250,8 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
           notified: insertedTransaction.paymentMethod.notified,
           disabled: insertedTransaction.paymentMethod.disabled,
           transactionCount: insertedTransaction.paymentMethod.transactionCount,
-          created: insertedTransaction.paymentMethod.created,
-          modified: insertedTransaction.paymentMethod.modified,
+          created: this.dateService.fixPrismaReadDate(insertedTransaction.paymentMethod.created),
+          modified: this.dateService.fixPrismaReadDate(insertedTransaction.paymentMethod.modified),
         },
         enrollment: {
           enrollmentId: insertedTransaction.enrollment.enrollmentId,
@@ -255,12 +259,12 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
           courseId: insertedTransaction.enrollment.courseId,
           currencyId: insertedTransaction.enrollment.currencyId,
           userId: insertedTransaction.enrollment.userId,
-          enrollmentDate: insertedTransaction.enrollment.enrollmentDate,
+          enrollmentDate: this.dateService.fixPrismaReadDate(insertedTransaction.enrollment.enrollmentDate),
           expiryDate: insertedTransaction.enrollment.expiryDate,
           paymentPlan: insertedTransaction.enrollment.paymentPlan,
           status: insertedTransaction.enrollment.status,
-          statusDate: insertedTransaction.enrollment.statusDate,
-          gradEmailDate: insertedTransaction.enrollment.gradEmailDate,
+          statusDate: this.dateService.fixPrismaReadDate(insertedTransaction.enrollment.statusDate),
+          gradEmailDate: this.dateService.fixPrismaReadDate(insertedTransaction.enrollment.gradEmailDate),
           gradEmailSkip: insertedTransaction.enrollment.gradEmailSkip,
           cost: insertedTransaction.enrollment.cost.toNumber(),
           discount: insertedTransaction.enrollment.discount.toNumber(),
@@ -270,16 +274,16 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
           paymentOverride: insertedTransaction.enrollment.paymentOverride,
           paymentFrequency: insertedTransaction.enrollment.paymentFrequency,
           paymentDay: insertedTransaction.enrollment.paymentDay,
-          paymentStart: insertedTransaction.enrollment.paymentStart,
+          paymentStart: this.dateService.fixPrismaReadDate(insertedTransaction.enrollment.paymentStart),
           accountId: insertedTransaction.enrollment.accountId,
-          preparedDate: insertedTransaction.enrollment.preparedDate,
-          shippedDate: insertedTransaction.enrollment.shippedDate,
+          preparedDate: this.dateService.fixPrismaReadDate(insertedTransaction.enrollment.preparedDate),
+          shippedDate: this.dateService.fixPrismaReadDate(insertedTransaction.enrollment.shippedDate),
           diploma: insertedTransaction.enrollment.diploma,
-          diplomaDate: insertedTransaction.enrollment.diplomaDate,
+          diplomaDate: this.dateService.fixPrismaReadDate(insertedTransaction.enrollment.diplomaDate),
           fastTrack: insertedTransaction.enrollment.fastTrack,
           noStudentCenter: insertedTransaction.enrollment.noStudentCenter,
-          created: insertedTransaction.enrollment.created,
-          modified: insertedTransaction.enrollment.modified,
+          created: this.dateService.fixPrismaReadDate(insertedTransaction.enrollment.created),
+          modified: this.dateService.fixPrismaReadDate(insertedTransaction.enrollment.modified),
         },
       });
 

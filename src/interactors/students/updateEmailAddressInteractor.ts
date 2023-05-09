@@ -1,5 +1,6 @@
 import type { StudentDTO } from '../../domain/studentDTO.js';
 import type { PrismaClient } from '../../frameworks/prisma/index.js';
+import type { DateService } from '../../services/date/dateService.js';
 import type { IEmailValidatorService } from '../../services/emailValidator/index.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';
@@ -22,6 +23,7 @@ export class UpdateEmailAddressInteractor implements IInteractor<UpdateEmailAddr
   public constructor(
     private readonly prisma: PrismaClient,
     private readonly emailValidator: IEmailValidatorService,
+    private readonly dateService: DateService,
     private readonly logger: ILoggerService
   ) { /* empty */ }
 
@@ -38,12 +40,19 @@ export class UpdateEmailAddressInteractor implements IInteractor<UpdateEmailAddr
         return Result.fail(new UpdateEmailAddressInvalidEmailAddress());
       }
 
+      const prismaNow = this.dateService.fixPrismaWriteDate(this.dateService.getDate());
+
       const updated = await this.prisma.student.update({
         where: { studentId },
         data: {
           emailAddress,
+          modified: prismaNow,
           notes: {
-            create: { note: `Student updated email address number from ${student.emailAddress} to ${emailAddress}` },
+            create: {
+              note: `Student updated email address number from ${student.emailAddress ?? 'null'} to ${emailAddress}`,
+              created: prismaNow,
+              modified: prismaNow,
+            },
           },
         },
       });
@@ -65,12 +74,12 @@ export class UpdateEmailAddressInteractor implements IInteractor<UpdateEmailAddr
         telephoneCountryCode: updated.telephoneCountryCode,
         telephoneNumber: updated.telephoneNumber,
         emailAddress: updated.emailAddress,
-        paymentStart: updated.paymentStart,
+        paymentStart: this.dateService.fixPrismaReadDate(updated.paymentStart),
         paymentDay: updated.paymentDay,
         sms: updated.sms,
         enrollmentCount: updated.enrollmentCount,
-        created: updated.created,
-        modified: updated.modified,
+        created: this.dateService.fixPrismaReadDate(updated.created),
+        modified: this.dateService.fixPrismaReadDate(updated.modified),
       });
 
     } catch (err) {

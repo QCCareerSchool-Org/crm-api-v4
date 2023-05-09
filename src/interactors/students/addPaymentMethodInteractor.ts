@@ -75,6 +75,8 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
 
       this.logger.info('Creating credit card', { studentId, enrollmentIds, company });
 
+      const prismaNow = this.dateService.fixPrismaWriteDate(this.dateService.getDate());
+
       const paysafeResult = await paysafe.create(
         studentNumber,
         enrollment.student.firstName,
@@ -93,10 +95,9 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
 
       await this.prisma.$transaction(async transaction => {
         await transaction.paymentMethod.updateMany({
-          data: { primary: false },
+          data: { primary: false, modified: prismaNow },
           where: { OR: enrollments.map((e => ({ enrollmentId: e.enrollmentId }))) },
         });
-        const created = this.dateService.getLocalDate() + 'Z';
         return transaction.paymentMethod.createMany({
           data: enrollments.map(e => ({
             enrollmentId: e.enrollmentId,
@@ -109,8 +110,8 @@ export class AddPaymentMethodInteractor implements IInteractor<AddPaymentMethodR
             pan: paysafeResult.maskedPan,
             expiryMonth: paysafeResult.expiryMonth,
             expiryYear: paysafeResult.expiryYear,
-            created,
-            modified: created,
+            created: prismaNow,
+            modified: prismaNow,
           })),
         });
       });

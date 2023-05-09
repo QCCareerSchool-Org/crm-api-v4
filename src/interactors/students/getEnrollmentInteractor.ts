@@ -4,6 +4,7 @@ import type { EnrollmentDTO } from '../../domain/enrollmentDTO.js';
 import type { PaymentMethodDTO } from '../../domain/paymentMethodDTO.js';
 import type { TransactionDTO } from '../../domain/transactionDTO.js';
 import type { PrismaClient } from '../../frameworks/prisma/index.js';
+import type { DateService } from '../../services/date/dateService.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';
 import type { ResultType } from '../result.js';
@@ -30,6 +31,7 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
 
   public constructor(
     private readonly prisma: PrismaClient,
+    private readonly dateService: DateService,
     private readonly logger: ILoggerService
   ) { /* empty */ }
 
@@ -69,16 +71,16 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
         paymentOverride: enrollment.paymentOverride,
         paymentFrequency: enrollment.paymentFrequency,
         paymentDay: enrollment.paymentDay,
-        paymentStart: enrollment.paymentStart,
+        paymentStart: this.dateService.fixPrismaReadDate(enrollment.paymentStart),
         accountId: enrollment.accountId,
-        preparedDate: enrollment.preparedDate,
-        shippedDate: enrollment.shippedDate,
+        preparedDate: this.dateService.fixPrismaReadDate(enrollment.preparedDate),
+        shippedDate: this.dateService.fixPrismaReadDate(enrollment.shippedDate),
         diploma: enrollment.diploma,
-        diplomaDate: enrollment.diplomaDate,
+        diplomaDate: this.dateService.fixPrismaReadDate(enrollment.diplomaDate),
         fastTrack: enrollment.fastTrack,
         noStudentCenter: enrollment.noStudentCenter,
-        created: enrollment.created,
-        modified: enrollment.modified,
+        created: this.dateService.fixPrismaReadDate(enrollment.created),
+        modified: this.dateService.fixPrismaReadDate(enrollment.modified),
         course: {
           courseId: enrollment.course.courseId,
           schoolId: enrollment.course.schoolId,
@@ -88,8 +90,8 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
           maxAssignments: enrollment.course.maxAssignments,
           order: enrollment.course.order,
           cost: enrollment.course.cost.toNumber(),
-          created: enrollment.course.created,
-          modified: enrollment.course.modified,
+          created: this.dateService.fixPrismaReadDate(enrollment.course.created),
+          modified: this.dateService.fixPrismaReadDate(enrollment.course.modified),
         },
         currency: {
           currencyId: enrollment.currency.currencyId,
@@ -97,16 +99,18 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
           name: enrollment.currency.name,
           symbol: enrollment.currency.symbol,
           exchangeRate: enrollment.currency.exchangeRate.toNumber(),
-          created: enrollment.currency.created,
-          modified: enrollment.currency.modified,
+          created: this.dateService.fixPrismaReadDate(enrollment.currency.created),
+          modified: this.dateService.fixPrismaReadDate(enrollment.currency.modified),
         },
         transactions: enrollment.transactions.map(t => {
-          const transactionDateTime = new Date(t.transactionDate);
+          const transactionDate = this.dateService.fixPrismaReadDate(t.transactionDate);
+          const transactionDateTime = new Date(transactionDate);
           if (t.transactionTime) {
-            transactionDateTime.setHours(t.transactionTime.getHours());
-            transactionDateTime.setMinutes(t.transactionTime.getMinutes());
-            transactionDateTime.setSeconds(t.transactionTime.getSeconds());
-            transactionDateTime.setMilliseconds(t.transactionTime.getMilliseconds());
+            const transactionTime = this.dateService.fixPrismaReadDate(t.transactionTime);
+            transactionDateTime.setHours(transactionTime.getHours());
+            transactionDateTime.setMinutes(transactionTime.getMinutes());
+            transactionDateTime.setSeconds(transactionTime.getSeconds());
+            transactionDateTime.setMilliseconds(transactionTime.getMilliseconds());
           }
           return {
             transactionId: t.transactionId,
@@ -129,7 +133,7 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
             response: t.response,
             description: t.description,
             posted: t.posted,
-            postedDate: t.postedDate,
+            postedDate: this.dateService.fixPrismaReadDate(t.postedDate),
             notified: t.notified,
             extraCharge: t.extraCharge,
             auto: t.auto,
@@ -138,8 +142,8 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
             voided: t.voided,
             notes: t.notes,
             severity: t.severity,
-            created: t.created,
-            modified: t.modified,
+            created: this.dateService.fixPrismaReadDate(t.created),
+            modified: this.dateService.fixPrismaReadDate(t.modified),
             paymentMethod: t.paymentMethod === null ? null : {
               paymentMethodId: t.paymentMethod.paymentMethodId,
               enrollmentId: t.paymentMethod.enrollmentId,
@@ -156,8 +160,8 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
               notified: t.paymentMethod.notified,
               disabled: t.paymentMethod.disabled,
               transactionCount: t.paymentMethod.transactionCount,
-              created: t.paymentMethod.created,
-              modified: t.paymentMethod.modified,
+              created: this.dateService.fixPrismaReadDate(t.paymentMethod.created),
+              modified: this.dateService.fixPrismaReadDate(t.paymentMethod.modified),
             },
           };
         }),
@@ -177,8 +181,8 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
           notified: p.notified,
           disabled: p.disabled,
           transactionCount: p.transactionCount,
-          created: p.created,
-          modified: p.modified,
+          created: this.dateService.fixPrismaReadDate(p.created),
+          modified: this.dateService.fixPrismaReadDate(p.modified),
         })),
       });
 

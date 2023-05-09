@@ -14,8 +14,8 @@ import { UpdateTelephoneNumberInteractor } from './updateTelephoneNumberInteract
 
 export const addPaymentMethodInteractor = new AddPaymentMethodInteractor(prisma, paysafeServiceFactory, dateService, winstonLoggerService);
 export const chargePaymentMethodInteractor = new ChargePaymentMethodInteractor(prisma, remotePrisma, bigJsDecimalService, paysafeServiceFactory, dateService, winstonLoggerService);
-export const getStudentInteractor = new GetStudentInteractor(prisma, winstonLoggerService);
-export const getEnrollmentInteractor = new GetEnrollmentInteractor(prisma, winstonLoggerService);
-export const updateTelephoneNumberInteractor = new UpdateTelephoneNumberInteractor(prisma, winstonLoggerService);
-export const updateEmailAddressInteractor = new UpdateEmailAddressInteractor(prisma, emailValidatorService, winstonLoggerService);
-export const updateBillingAddressInteractor = new UpdateBillingAddressInteractor(prisma, winstonLoggerService);
+export const getStudentInteractor = new GetStudentInteractor(prisma, dateService, winstonLoggerService);
+export const getEnrollmentInteractor = new GetEnrollmentInteractor(prisma, dateService, winstonLoggerService);
+export const updateTelephoneNumberInteractor = new UpdateTelephoneNumberInteractor(prisma, dateService, winstonLoggerService);
+export const updateEmailAddressInteractor = new UpdateEmailAddressInteractor(prisma, emailValidatorService, dateService, winstonLoggerService);
+export const updateBillingAddressInteractor = new UpdateBillingAddressInteractor(prisma, dateService, winstonLoggerService);

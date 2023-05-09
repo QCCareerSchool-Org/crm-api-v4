@@ -6,6 +6,7 @@ import type { ProvinceDTO } from '../../domain/provinceDTO.js';
 import type { StudentDTO } from '../../domain/studentDTO.js';
 import type { TransactionDTO } from '../../domain/transactionDTO.js';
 import type { PrismaClient } from '../../frameworks/prisma/index.js';
+import type { DateService } from '../../services/date/dateService.js';
 import type { ILoggerService } from '../../services/logger/index.js';
 import type { IInteractor } from '../index.js';
 import type { ResultType } from '../result.js';
@@ -32,6 +33,7 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
 
   public constructor(
     private readonly prisma: PrismaClient,
+    private readonly dateService: DateService,
     private readonly logger: ILoggerService
   ) { /* empty */ }
 
@@ -68,12 +70,12 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
         telephoneCountryCode: student.telephoneCountryCode,
         telephoneNumber: student.telephoneNumber,
         emailAddress: student.emailAddress,
-        paymentStart: student.paymentStart,
+        paymentStart: this.dateService.fixPrismaReadDate(student.paymentStart),
         paymentDay: student.paymentDay,
         sms: student.sms,
         enrollmentCount: student.enrollmentCount,
-        created: student.created,
-        modified: student.modified,
+        created: this.dateService.fixPrismaReadDate(student.created),
+        modified: this.dateService.fixPrismaReadDate(student.modified),
         province: student.province === null ? null : {
           provinceId: student.province.provinceId,
           countryId: student.province.countryId,
@@ -92,12 +94,12 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
           courseId: e.courseId,
           currencyId: e.currencyId,
           userId: e.userId,
-          enrollmentDate: e.enrollmentDate,
-          expiryDate: e.expiryDate,
+          enrollmentDate: this.dateService.fixPrismaReadDate(e.enrollmentDate),
+          expiryDate: this.dateService.fixPrismaReadDate(e.expiryDate),
           paymentPlan: e.paymentPlan,
           status: e.status,
-          statusDate: e.statusDate,
-          gradEmailDate: e.gradEmailDate,
+          statusDate: this.dateService.fixPrismaReadDate(e.statusDate),
+          gradEmailDate: this.dateService.fixPrismaReadDate(e.gradEmailDate),
           gradEmailSkip: e.gradEmailSkip,
           cost: e.cost.toNumber(),
           discount: e.discount.toNumber(),
@@ -107,16 +109,16 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
           paymentOverride: e.paymentOverride,
           paymentFrequency: e.paymentFrequency,
           paymentDay: e.paymentDay,
-          paymentStart: e.paymentStart,
+          paymentStart: this.dateService.fixPrismaReadDate(e.paymentStart),
           accountId: e.accountId,
-          preparedDate: e.preparedDate,
-          shippedDate: e.shippedDate,
+          preparedDate: this.dateService.fixPrismaReadDate(e.preparedDate),
+          shippedDate: this.dateService.fixPrismaReadDate(e.shippedDate),
           diploma: e.diploma,
-          diplomaDate: e.diplomaDate,
+          diplomaDate: this.dateService.fixPrismaReadDate(e.diplomaDate),
           fastTrack: e.fastTrack,
           noStudentCenter: e.noStudentCenter,
-          created: e.created,
-          modified: e.modified,
+          created: this.dateService.fixPrismaReadDate(e.created),
+          modified: this.dateService.fixPrismaReadDate(e.modified),
           course: {
             courseId: e.course.courseId,
             schoolId: e.course.schoolId,
@@ -126,8 +128,8 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
             maxAssignments: e.course.maxAssignments,
             order: e.course.order,
             cost: e.course.cost.toNumber(),
-            created: e.course.created,
-            modified: e.course.modified,
+            created: this.dateService.fixPrismaReadDate(e.course.created),
+            modified: this.dateService.fixPrismaReadDate(e.course.modified),
           },
           currency: {
             currencyId: e.currency.currencyId,
@@ -135,16 +137,18 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
             name: e.currency.name,
             symbol: e.currency.symbol,
             exchangeRate: e.currency.exchangeRate.toNumber(),
-            created: e.currency.created,
-            modified: e.currency.modified,
+            created: this.dateService.fixPrismaReadDate(e.currency.created),
+            modified: this.dateService.fixPrismaReadDate(e.currency.modified),
           },
           transactions: e.transactions.map(t => {
-            const transactionDateTime = new Date(t.transactionDate);
+            const transactionDate = this.dateService.fixPrismaReadDate(t.transactionDate);
+            const transactionDateTime = new Date(transactionDate);
             if (t.transactionTime) {
-              transactionDateTime.setHours(t.transactionTime.getHours());
-              transactionDateTime.setMinutes(t.transactionTime.getMinutes());
-              transactionDateTime.setSeconds(t.transactionTime.getSeconds());
-              transactionDateTime.setMilliseconds(t.transactionTime.getMilliseconds());
+              const transactionTime = this.dateService.fixPrismaReadDate(t.transactionTime);
+              transactionDateTime.setHours(transactionTime.getHours());
+              transactionDateTime.setMinutes(transactionTime.getMinutes());
+              transactionDateTime.setSeconds(transactionTime.getSeconds());
+              transactionDateTime.setMilliseconds(transactionTime.getMilliseconds());
             }
             return {
               transactionId: t.transactionId,
@@ -167,7 +171,7 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
               response: t.response,
               description: t.description,
               posted: t.posted,
-              postedDate: t.postedDate,
+              postedDate: this.dateService.fixPrismaReadDate(t.postedDate),
               notified: t.notified,
               extraCharge: t.extraCharge,
               auto: t.auto,
@@ -176,8 +180,8 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
               voided: t.voided,
               notes: t.notes,
               severity: t.severity,
-              created: t.created,
-              modified: t.modified,
+              created: this.dateService.fixPrismaReadDate(t.created),
+              modified: this.dateService.fixPrismaReadDate(t.modified),
             };
           }),
         })),

@@ -202,6 +202,8 @@ model Enrollment {
   user                 User?                      @relation(fields: [userId], references: [userId], map: "enrollments_ibfk_4")
   paymentMethods       PaymentMethod[]
   transactions         Transaction[]
+  bonusItemShipments   BonusItemShipments[]
+
 
   @@map("enrollments")
   @@unique([studentId, courseId], map: "student_id_2")
@@ -384,4 +386,34 @@ enum NoteType {
   general
   automatic
   tutorial
+}
+
+model BonusItem {
+  bonusItemId        Bytes     @id @map("bonus_item_id") @db.Binary(16)
+  name               String    @db.VarChar(191)
+  description        String    @db.Text()
+  enabled            Boolean
+  default            Boolean
+  shipImmediately    Boolean   @map("ship_immediately")
+  threshold          Decimal?  @db.Decimal(6, 5)
+  created            DateTime  @default(now()) @db.Timestamp(0)
+  modified           DateTime? @db.Timestamp(0) @updatedAt
+  bonusItemShipments BonusItemShipments[]
+  
+  @@map("bonus_items")
+}
+
+model BonusItemShipments {
+  bonusItemShipmentId Bytes      @id @map("bonus_item_shipment_id") @db.Binary(16)
+  enrollmentId        Int        @db.UnsignedInt @map("enrollment_id")
+  bonusItemId         Bytes      @map("bonus_item_id") @db.Binary(16)
+  threshold           Decimal?   @db.Decimal(6, 5)
+  qualified           DateTime?  @db.Timestamp()
+  prepared            DateTime?  @db.Timestamp()
+  shipped             DateTime?  @db.Timestamp()
+  created             DateTime   @default(now()) @db.Timestamp(0)
+  enrollment          Enrollment @relation(fields: [enrollmentId], references: [enrollmentId], onDelete: Cascade, map: "FK_bonus_item_shipments_enrollments")
+  bonusItem           BonusItem  @relation(fields: [bonusItemId], references: [bonusItemId], onDelete: Cascade, map: "FK_bonus_item_shipments_bonus_items")
+
+  @@map("bonus_item_shipments")
 }

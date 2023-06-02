@@ -4,6 +4,7 @@ import { bigJsDecimalService } from '../../services/decimal/index.js';
 import { emailValidatorService } from '../../services/emailValidator/index.js';
 import { winstonLoggerService } from '../../services/logger/index.js';
 import { paysafeServiceFactory } from '../../services/paysafe/index.js';
+import { uuidService } from '../../services/uuid/index.js';
 import { AddPaymentMethodInteractor } from './addPaymentMethodInteractor.js';
 import { ChargePaymentMethodInteractor } from './chargePaymentMethodInteractor.js';
 import { GetEnrollmentInteractor } from './getEnrollmentInteractor.js';
@@ -14,8 +15,8 @@ import { UpdateTelephoneNumberInteractor } from './updateTelephoneNumberInteract
 
 export const addPaymentMethodInteractor = new AddPaymentMethodInteractor(prisma, paysafeServiceFactory, dateService, winstonLoggerService);
 export const chargePaymentMethodInteractor = new ChargePaymentMethodInteractor(prisma, remotePrisma, bigJsDecimalService, paysafeServiceFactory, dateService, winstonLoggerService);
-export const getStudentInteractor = new GetStudentInteractor(prisma, dateService, winstonLoggerService);
-export const getEnrollmentInteractor = new GetEnrollmentInteractor(prisma, dateService, winstonLoggerService);
+export const getStudentInteractor = new GetStudentInteractor(prisma, uuidService, dateService, winstonLoggerService);
+export const getEnrollmentInteractor = new GetEnrollmentInteractor(prisma, uuidService, dateService, winstonLoggerService);
 export const updateTelephoneNumberInteractor = new UpdateTelephoneNumberInteractor(prisma, dateService, winstonLoggerService);
 export const updateEmailAddressInteractor = new UpdateEmailAddressInteractor(prisma, emailValidatorService, dateService, winstonLoggerService);
 export const updateBillingAddressInteractor = new UpdateBillingAddressInteractor(prisma, dateService, winstonLoggerService);

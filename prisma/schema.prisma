@@ -43,9 +43,30 @@ model School {
   created                  DateTime                 @default(now()) @db.Timestamp(0)
   modified                 DateTime?                @db.Timestamp(0) @updatedAt
   studentCenterAccountType StudentCenterAccountType @default(general)
+  variants                 SchoolsOnVariants[]
   courses                  Course[]
 
   @@map("schools")
+}
+
+model Variant {
+  variantId Int                 @id @db.Int @default(autoincrement()) @map("id")
+  name      String              @db.VarChar(191)
+  schools   SchoolsOnVariants[]
+  courses   Course[]
+
+  @@map("variants")
+}
+
+model SchoolsOnVariants {
+  schoolId  Int      @db.UnsignedInt @map("school_id")
+  variantId Int      @db.Int @map("variant_id")
+  school    School   @relation(fields: [schoolId], references: [schoolId], onDelete: Cascade, map: "FK_schools_variants_schools")
+  variant   Variant  @relation(fields: [variantId], references: [variantId], onDelete: Cascade, map: "FK_schools_variants_variants")
+  courses   Course[]
+
+  @@id([schoolId, variantId])
+  @@map("schools_variants")
 }
 
 enum StudentCenterAccountType {
@@ -56,19 +77,22 @@ enum StudentCenterAccountType {
 }
 
 model Course {
-  courseId        Int          @id @db.UnsignedInt @default(autoincrement()) @map("id")
-  schoolId        Int          @db.UnsignedInt() @map("school_id")
-  code            String       @db.Char(2)
-  name            String       @db.VarChar(255)
-  prefix          String       @db.Char(2)
-  maxAssignments  Int?         @db.Int @map("max_assignments")
-  order           Int          @db.UnsignedInt @default(50)
-  enrollmentCount Int          @db.UnsignedInt @default(0) @map("enrollment_count")
-  cost            Decimal      @db.Decimal(10, 2) @default(0)
-  installment     Decimal      @db.Decimal(10, 2) @default(0)
-  created         DateTime     @default(now()) @db.Timestamp(0)
-  modified        DateTime?    @db.Timestamp(0) @updatedAt
-  school          School       @relation(fields: [schoolId], references: [schoolId], map: "courses_ibfk_1")
+  courseId        Int                @id @db.UnsignedInt @default(autoincrement()) @map("id")
+  schoolId        Int                @db.UnsignedInt() @map("school_id")
+  variantId       Int?               @db.Int() @map("variant_id")
+  code            String             @db.Char(2)
+  name            String             @db.VarChar(255)
+  prefix          String             @db.Char(2)
+  maxAssignments  Int?               @db.Int @map("max_assignments")
+  order           Int                @db.UnsignedInt @default(50)
+  enrollmentCount Int                @db.UnsignedInt @default(0) @map("enrollment_count")
+  cost            Decimal            @db.Decimal(10, 2) @default(0)
+  installment     Decimal            @db.Decimal(10, 2) @default(0)
+  created         DateTime           @default(now()) @db.Timestamp(0)
+  modified        DateTime?          @db.Timestamp(0) @updatedAt
+  school          School             @relation(fields: [schoolId], references: [schoolId], map: "courses_ibfk_1")
+  variant         Variant?           @relation(fields: [variantId], references: [variantId], map: "courses_ibfk_2")
+  schoolVariant   SchoolsOnVariants? @relation(fields: [schoolId, variantId], references: [schoolId, variantId], map: "courses_ibfk_3")
   enrollments     Enrollment[]
   notes           Note[]
 

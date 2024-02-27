@@ -127,6 +127,7 @@ export class GetStudentInteractor implements IInteractor<GetStudentRequestDTO, G
           course: {
             courseId: e.course.courseId,
             schoolId: e.course.schoolId,
+            variantId: e.course.variantId,
             code: e.course.code,
             name: e.course.name,
             prefix: e.course.prefix,

@@ -1,3 +1,5 @@
+import type { BonusItemDTO } from '../../domain/bonusItemDTO.js';
+import type { BonusItemShipmentDTO } from '../../domain/bonusItemShipmentDTO.js';
 import type { CourseDTO } from '../../domain/courseDTO.js';
 import type { CurrencyDTO } from '../../domain/currencyDTO.js';
 import type { EnrollmentDTO } from '../../domain/enrollmentDTO.js';
@@ -6,6 +8,7 @@ import type { TransactionDTO } from '../../domain/transactionDTO.js';
 import type { PrismaClient } from '../../frameworks/prisma/index.js';
 import type { DateService } from '../../services/date/dateService.js';
 import type { ILoggerService } from '../../services/logger/index.js';
+import type { IUUIDService } from '../../services/uuid/index.js';
 import type { IInteractor } from '../index.js';
 import type { ResultType } from '../result.js';
 import { Result } from '../result.js';
@@ -22,6 +25,7 @@ export type GetEnrollmentResponseDTO = EnrollmentDTO & {
     paymentMethod: PaymentMethodDTO | null;
   }>;
   paymentMethods: PaymentMethodDTO[];
+  bonusItemShipments: Array<BonusItemShipmentDTO & { bonusItem: BonusItemDTO }>;
 };
 
 class GetEnrollmentError extends Error { }
@@ -31,6 +35,7 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
 
   public constructor(
     private readonly prisma: PrismaClient,
+    private readonly uuidService: IUUIDService,
     private readonly dateService: DateService,
     private readonly logger: ILoggerService
   ) { /* empty */ }
@@ -44,6 +49,7 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
           currency: true,
           transactions: { include: { paymentMethod: true } },
           paymentMethods: { where: { deleted: false, paymentType: { name: 'paysafe' } } },
+          bonusItemShipments: { include: { bonusItem: true } },
         },
       });
       if (!enrollment) {
@@ -84,6 +90,7 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
         course: {
           courseId: enrollment.course.courseId,
           schoolId: enrollment.course.schoolId,
+          variantId: enrollment.course.variantId,
           code: enrollment.course.code,
           name: enrollment.course.name,
           prefix: enrollment.course.prefix,
@@ -183,6 +190,27 @@ export class GetEnrollmentInteractor implements IInteractor<GetEnrollmentRequest
           transactionCount: p.transactionCount,
           created: this.dateService.fixPrismaReadDate(p.created),
           modified: this.dateService.fixPrismaReadDate(p.modified),
+        })),
+        bonusItemShipments: enrollment.bonusItemShipments.map(s => ({
+          bonusItemShipmentId: this.uuidService.binToUUID(s.bonusItemShipmentId),
+          enrollmentId: s.enrollmentId,
+          bonusItemId: this.uuidService.binToUUID(s.bonusItemId),
+          threshold: s.threshold === null ? null : s.threshold.toNumber(),
+          qualified: this.dateService.fixPrismaReadDate(s.qualified),
+          prepared: this.dateService.fixPrismaReadDate(s.prepared),
+          shipped: this.dateService.fixPrismaReadDate(s.shipped),
+          created: this.dateService.fixPrismaReadDate(s.created),
+          bonusItem: {
+            bonusItemId: this.uuidService.binToUUID(s.bonusItem.bonusItemId),
+            name: s.bonusItem.name,
+            description: s.bonusItem.description,
+            enabled: s.bonusItem.enabled,
+            default: s.bonusItem.default,
+            shipImmediately: s.bonusItem.shipImmediately,
+            threshold: s.bonusItem.threshold === null ? null : s.bonusItem.threshold.toNumber(),
+            created: this.dateService.fixPrismaReadDate(s.bonusItem.created),
+            modified: this.dateService.fixPrismaReadDate(s.bonusItem.modified),
+          },
         })),
       });
 

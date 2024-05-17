@@ -1,6 +1,7 @@
 export type CourseDTO = {
   courseId: number;
   schoolId: number;
+  variantId: number | null;
   code: string;
   name: string;
   prefix: string;

@@ -68,6 +68,18 @@ export class EnvironmentConfigService implements IConfigService {
     if (typeof paysafeCAAccountCAD === 'undefined') {
       throw Error('Environment variable PAYSAFE_CA_ACCOUNT_CAD is undefined');
     }
+    const paysafeCAAccountNZD = process.env.PAYSAFE_CA_ACCOUNT_NZD;
+    if (typeof paysafeCAAccountNZD === 'undefined') {
+      throw Error('Environment variable PAYSAFE_CA_ACCOUNT_NZD is undefined');
+    }
+    const paysafeCAAccountAUD = process.env.PAYSAFE_CA_ACCOUNT_AUD;
+    if (typeof paysafeCAAccountAUD === 'undefined') {
+      throw Error('Environment variable PAYSAFE_CA_ACCOUNT_AUD is undefined');
+    }
+    const paysafeCAAccountGBP = process.env.PAYSAFE_CA_ACCOUNT_GBP;
+    if (typeof paysafeCAAccountGBP === 'undefined') {
+      throw Error('Environment variable PAYSAFE_CA_ACCOUNT_GBP is undefined');
+    }
 
     const paysafeUSApiKey = process.env.PAYSAFE_US_API_KEY;
     if (typeof paysafeUSApiKey === 'undefined') {
@@ -120,6 +132,9 @@ export class EnvironmentConfigService implements IConfigService {
           apiPassword: paysafeCAApiPassword,
           accounts: {
             CAD: paysafeCAAccountCAD,
+            NZD: paysafeCAAccountNZD,
+            AUD: paysafeCAAccountAUD,
+            GBP: paysafeCAAccountGBP,
           },
         },
         US: {

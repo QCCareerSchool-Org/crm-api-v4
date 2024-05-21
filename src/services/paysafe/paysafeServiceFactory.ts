@@ -8,16 +8,15 @@ export class PaysafeServiceFactory implements IPaysafeServiceFactory {
 
   public constructor(private readonly configService: IConfigService, private readonly logger: ILoggerService) { /* empty */ }
 
-  public getCompany(currencyCode: string): PaysafeCompany {
+  public getDefaultCompany(currencyCode: string): PaysafeCompany {
     switch (currencyCode) {
       case 'CAD':
-        return 'CA';
-      case 'USD':
-        return 'US';
       case 'GBP':
       case 'AUD':
       case 'NZD':
-        return 'GB';
+        return 'CA';
+      case 'USD':
+        return 'US';
       default:
         throw Error('Unsupported currency for Paysafe');
     }

@@ -6,7 +6,7 @@ import { winstonLoggerService } from '../logger/index.js';
 import { PaysafeServiceFactory } from './paysafeServiceFactory.js';
 
 export interface IPaysafeServiceFactory {
-  getCompany: (currencyCode: string) => PaysafeCompany;
+  getDefaultCompany: (currencyCode: string) => PaysafeCompany;
   createInstance: (company: PaysafeCompany, currencyCode: string) => IPaysafeService;
 }
 

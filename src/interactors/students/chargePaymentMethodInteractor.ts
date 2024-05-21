@@ -94,9 +94,8 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
         return Result.fail(new ChargePaymentMethodAmountExceedsMaximum());
       }
 
-      const amountPaid = enrollment.transactions
-        .filter(t => !t.extraCharge)
-        .reduce((prev, cur) => this.decimalService.add(prev, cur.amount.toNumber()), 0);
+      const nonExtraAmounts = enrollment.transactions.filter(t => !t.extraCharge).map(t => t.amount.toNumber());
+      const amountPaid = this.decimalService.addMany(nonExtraAmounts);
 
       const discountedCost = this.decimalService.subtract(enrollment.cost.toNumber(), enrollment.discount.toNumber());
 

@@ -5,6 +5,7 @@ export type PaymentMethodDTO = {
   enrollmentId: number | null;
   paymentTypeId: number;
   primary: boolean;
+  thirdParty: boolean;
   paysafeProfileId: string | null;
   paysafeCardId: string | null;
   paysafePaymentToken: string | null;

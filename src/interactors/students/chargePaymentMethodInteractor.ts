@@ -243,6 +243,7 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
           enrollmentId: insertedTransaction.paymentMethod.enrollmentId,
           paymentTypeId: insertedTransaction.paymentMethod.paymentTypeId,
           primary: insertedTransaction.paymentMethod.primary,
+          thirdParty: insertedTransaction.paymentMethod.thirdParty,
           paysafeProfileId: insertedTransaction.paymentMethod.paysafeProfileId,
           paysafeCardId: insertedTransaction.paymentMethod.paysafeCardId,
           paysafePaymentToken: insertedTransaction.paymentMethod.paysafePaymentToken,

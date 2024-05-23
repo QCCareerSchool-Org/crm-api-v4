@@ -271,7 +271,7 @@ model PaymentMethod {
   enrollmentId         Int?            @db.UnsignedInt @map("enrollment_id")
   paymentTypeId        Int             @db.UnsignedInt @map("payment_type_id")
   primary              Boolean
-  thirdParty           Boolean         @map("third_party")
+  thirdParty           Boolean         @map("third_party") @default(false)
   paysafeProfileId     String?         @db.Char(36) @map("paysafe_profile_id")
   paysafeCardId        String?         @db.Char(36) @map("paysafe_card_id")
   paysafePaymentToken  String?         @db.Char(36) @map("paysafe_payment_token")

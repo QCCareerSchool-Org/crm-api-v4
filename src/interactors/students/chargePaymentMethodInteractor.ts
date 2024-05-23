@@ -24,6 +24,7 @@ export type ChargePaymentMethodResponseDTO = TransactionDTO & {
 
 class ChargePaymentMethodError extends Error { }
 export class ChargePaymentMethodNotFound extends ChargePaymentMethodError { }
+export class ChargePaymentMethodThirdParty extends ChargePaymentMethodError { }
 export class ChargePaymentMethodUnlinkedEnrollment extends ChargePaymentMethodError { }
 export class ChargePaymentMethodEnrollmentTransferred extends ChargePaymentMethodError { }
 export class ChargePaymentMethodEnrollmentWithdrawn extends ChargePaymentMethodError { }
@@ -56,6 +57,10 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
       });
       if (!paymentMethod) {
         return Result.fail(new ChargePaymentMethodNotFound());
+      }
+
+      if (paymentMethod.thirdParty) {
+        return Result.fail(new ChargePaymentMethodThirdParty());
       }
 
       if (paymentMethod.enrollment === null) {

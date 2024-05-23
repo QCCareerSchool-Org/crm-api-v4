@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 
 import type { ChargePaymentMethodResponseDTO } from '../../interactors/students/chargePaymentMethodInteractor.js';
-import { ChargePaymentMethodAmountExceedsMaximum, ChargePaymentMethodAmountTooLarge, ChargePaymentMethodAmountZeroOrLess, ChargePaymentMethodEnrollmentRefunded, ChargePaymentMethodEnrollmentTransferred, ChargePaymentMethodEnrollmentWithdrawn, ChargePaymentMethodNotFound, ChargePaymentMethodPaidInFull, ChargePaymentMethodPaysafeCompanyMissing, ChargePaymentMethodPaysafeTokenMissing, ChargePaymentMethodUnlinkedEnrollment, ChargePaymentMethodUnsupportedPaymentType } from '../../interactors/students/chargePaymentMethodInteractor.js';
+import { ChargePaymentMethodAmountExceedsMaximum, ChargePaymentMethodAmountTooLarge, ChargePaymentMethodAmountZeroOrLess, ChargePaymentMethodEnrollmentRefunded, ChargePaymentMethodEnrollmentTransferred, ChargePaymentMethodEnrollmentWithdrawn, ChargePaymentMethodNotFound, ChargePaymentMethodPaidInFull, ChargePaymentMethodPaysafeCompanyMissing, ChargePaymentMethodPaysafeTokenMissing, ChargePaymentMethodThirdParty, ChargePaymentMethodUnlinkedEnrollment, ChargePaymentMethodUnsupportedPaymentType } from '../../interactors/students/chargePaymentMethodInteractor.js';
 import { chargePaymentMethodInteractor } from '../../interactors/students/index.js';
 import { BaseController } from '../baseController.js';
 
@@ -66,6 +66,8 @@ export class ChargePaymentMethodController extends BaseController<Request, Respo
     switch (result.error.constructor) {
       case ChargePaymentMethodNotFound:
         return this.notFound('Payment method not found');
+      case ChargePaymentMethodThirdParty:
+        return this.conflict('Third-party credit card');
       case ChargePaymentMethodUnlinkedEnrollment:
         return this.internalServerError('Unlinked enrollment');
       case ChargePaymentMethodEnrollmentTransferred:

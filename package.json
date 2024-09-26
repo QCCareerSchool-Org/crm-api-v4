@@ -48,7 +48,7 @@
     "dotenv": "^16.4.5",
     "email-validator": "^2.0.4",
     "express": "^4.21.0",
-    "helmet": "^5.1.1",
+    "helmet": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "maxmind": "^4.3.21",
     "prisma": "^4.16.2",

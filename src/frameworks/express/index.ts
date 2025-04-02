@@ -79,11 +79,10 @@ app.use(asyncWrapper(async (req, res, next) => {
 app.use('/v4/students', studentRouter);
 
 if (environmentConfigService.config.environment === 'production') {
-  const key = fs.readFileSync('755108159.key');
-  const cert = fs.readFileSync('755108159.crt');
+  const key = fs.readFileSync('STAR.qccareerschool.com.key');
+  const cert = fs.readFileSync('STAR.qccareerschool.com.crt');
   const ca = [
-    fs.readFileSync('755108159-intermediate-1.crt'),
-    fs.readFileSync('755108159-intermediate-2.crt'),
+    fs.readFileSync('STAR.qccareerschool.com-intermediate.crt'),
   ];
   const httpsOptions = { key, cert, ca };
   https.createServer(httpsOptions, app).listen(port, () => {

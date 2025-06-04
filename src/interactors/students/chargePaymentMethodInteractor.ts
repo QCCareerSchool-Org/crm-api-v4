@@ -134,7 +134,7 @@ export class ChargePaymentMethodInteractor implements IInteractor<ChargePaymentM
           });
         }
         // update the payment method transaction count and possibly initial transaction ID
-        if (initialTransaction) {
+        if (initialTransaction && paymentMethod.initialTransactionId === null) {
           await transaction.paymentMethod.update({
             data: {
               transactionCount: { increment: 1 },

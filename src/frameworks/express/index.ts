@@ -1,5 +1,3 @@
-import fs from 'fs';
-import https from 'https';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import type { CorsOptions } from 'cors';

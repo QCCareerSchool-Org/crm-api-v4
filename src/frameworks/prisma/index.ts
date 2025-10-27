@@ -11,9 +11,9 @@
  * `PrismaClient` and `RemotePrismaClient`, along with any associated Prisma
  * entities should be imported from this file, rather than from @prisma/client.
  */
+import { Decimal } from 'decimal.js';
 import { PrismaClient } from '../../../prisma/generated/client1';
 import type { Country, Course, Currency, Enrollment, EnrollmentPaymentFrequency, EnrollmentPaymentPlan, EnrollmentStatus, Note, NoteType, PaymentMethod, PaymentType, PaysafeCompany, Province, RefreshToken, School, Student, StudentCenterAccountType, StudentSex, TelephoneCountryCode, Transaction, TransactionType, User, UserSex } from '../../../prisma/generated/client1/index.js';
-import { Decimal } from '../../../prisma/generated/client1/runtime';
 import { PrismaClient as RemotePrismaClient } from '../../../prisma/generated/client2';
 import type { Course as RemoteCourse, Enrollment as RemoteEnrollment } from '../../../prisma/generated/client2';
 

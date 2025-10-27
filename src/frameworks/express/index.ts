@@ -78,18 +78,6 @@ app.use(asyncWrapper(async (req, res, next) => {
 
 app.use('/v4/students', studentRouter);
 
-if (environmentConfigService.config.environment === 'production') {
-  const key = fs.readFileSync('STAR.qccareerschool.com.key');
-  const cert = fs.readFileSync('STAR.qccareerschool.com.crt');
-  const ca = [
-    fs.readFileSync('STAR.qccareerschool.com-intermediate.crt'),
-  ];
-  const httpsOptions = { key, cert, ca };
-  https.createServer(httpsOptions, app).listen(port, () => {
-    winstonLoggerService.info(`started on port ${port}`);
-  });
-} else {
-  app.listen(port, () => {
-    winstonLoggerService.info(`started on port ${port}`);
-  });
-}
+app.listen(port, () => {
+  winstonLoggerService.info(`started on port ${port}`);
+});
